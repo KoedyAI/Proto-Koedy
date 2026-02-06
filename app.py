@@ -1,5 +1,6 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+PT = timezone(timedelta(hours=-8))
 from anthropic import Anthropic
 import json
 from database import (
@@ -18,16 +19,14 @@ from database import (
     clear_note,
     export_all_data,
     increment_turn_counter
+    get_turn_counter
 )
 
 # Initialize client
 client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
 # Access codes — add friends here as: "their_code": "their_name"
-ACCESS_CODES = {
-    "koedy2026": "default_user",
-    # "friendscode": "friend_name",
-}
+ACCESS_CODES = json.loads(st.secrets["ACCESS_CODES"])
 
 # === ACCESS GATE ===
 st.set_page_config(page_title="Koedy", layout="wide")
@@ -152,7 +151,7 @@ def check_and_summarize():
                 "role": "system",
                 "content": f"[SUMMARY of turns {turn_start}-{turn_end}]\n{summary_text}",
                 "thinking": None,
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": datetime.now(PT).strftime("%Y-%m-%d %H:%M:%S")
             }
             archive_messages(user_id, oldest_messages + [summary_entry], summary_id)
             ids_to_delete = [msg["id"] for msg in oldest_messages]
@@ -210,9 +209,7 @@ with st.sidebar:
 
     st.divider()
 
-    msg_count = get_message_count(user_id)
-    total_summarized = get_total_turns_summarized(user_id)
-    st.write(f"Turns: {msg_count // 2}")
+    st.write(f"Turn: {get_turn_counter(user_id)}")
 
     st.divider()
 
@@ -222,7 +219,7 @@ with st.sidebar:
         st.download_button(
             label="Download JSON",
             data=json.dumps(data, indent=2),
-            file_name=f"koedy_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            file_name=f"koedy_export_{datetime.now(PT).strftime('%Y%m%d_%H%M%S')}.json",
             mime="application/json"
         )
 
@@ -238,7 +235,7 @@ for msg in st.session_state.display_messages:
 # Chat input
 if user_input := st.chat_input("What are we building today?"):
     turn_number = increment_turn_counter(user_id)
-    user_timestamp = datetime.now().strftime("%H:%M:%S %Y-%m-%d")
+    user_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
 
     add_message(user_id, "user", user_input, None, user_timestamp)
 
@@ -271,7 +268,7 @@ if user_input := st.chat_input("What are we building today?"):
                 messages=api_messages
             )
 
-        response_timestamp = datetime.now().strftime("%H:%M:%S %Y-%m-%d")
+        response_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
 
         thinking_text = ""
         response_text = ""
