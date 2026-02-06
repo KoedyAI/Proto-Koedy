@@ -1,0 +1,5 @@
+.env
+__pycache__/
+*.pyc
+koedy_prompt.txt
+.streamlit/secrets.toml
