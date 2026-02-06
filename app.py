@@ -1,4 +1,5 @@
 import streamlit as st
+import extra_streamlit_components as stx
 from datetime import datetime, timedelta, timezone
 PT = timezone(timedelta(hours=-8))
 from anthropic import Anthropic
@@ -31,11 +32,22 @@ ACCESS_CODES = json.loads(st.secrets["ACCESS_CODES"])
 # === ACCESS GATE ===
 st.set_page_config(page_title="Koedy", layout="wide")
 
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-    st.session_state.user_id = None
+cookie_manager = stx.CookieManager()
 
-if not st.session_state.authenticated:
+def check_auth():
+    """Check authentication from session state, then cookie."""
+    if st.session_state.get("authenticated"):
+        return True
+
+    saved_code = cookie_manager.get("koedy_access_code")
+    if saved_code and saved_code in ACCESS_CODES:
+        st.session_state.authenticated = True
+        st.session_state.user_id = ACCESS_CODES[saved_code]
+        return True
+
+    return False
+
+if not check_auth():
     st.title("Koedy")
     st.write("Enter your access code to continue.")
     code = st.text_input("Access code:", type="password")
@@ -43,6 +55,8 @@ if not st.session_state.authenticated:
         if code in ACCESS_CODES:
             st.session_state.authenticated = True
             st.session_state.user_id = ACCESS_CODES[code]
+            cookie_manager.set("koedy_access_code", code, 
+                             expires_at=datetime(2026, 12, 31))
             st.rerun()
         else:
             st.error("Invalid access code.")
@@ -209,7 +223,8 @@ with st.sidebar:
 
     st.divider()
 
-    st.write(f"Turn: {get_turn_counter(user_id)}")
+    turn_display = st.empty()
+    turn_display.write(f"Turn: {get_turn_counter(user_id)}")
 
     st.divider()
 
@@ -236,6 +251,7 @@ for msg in st.session_state.display_messages:
 if user_input := st.chat_input("What are we building today?"):
     turn_number = increment_turn_counter(user_id)
     user_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
+    turn_display.write(f"Turn: {turn_number}")
 
     add_message(user_id, "user", user_input, None, user_timestamp)
 
