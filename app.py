@@ -25,7 +25,7 @@ from database import (
 )
 import base64
 
-def set_background(image_file, opacity=0.12):
+def set_background(image_file, opacity=0.30):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
@@ -41,8 +41,8 @@ def set_background(image_file, opacity=0.12):
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 70%;
+            height: 70%;
             background-color: rgba(14, 17, 23, {1 - opacity});
             z-index: 0;
             pointer-events: none;
