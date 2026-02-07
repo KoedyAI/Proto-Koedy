@@ -1,5 +1,4 @@
 import streamlit as st
-import extra_streamlit_components as stx
 from datetime import datetime, timedelta, timezone
 PT = timezone(timedelta(hours=-8))
 from anthropic import Anthropic
@@ -32,19 +31,15 @@ ACCESS_CODES = json.loads(st.secrets["ACCESS_CODES"])
 # === ACCESS GATE ===
 st.set_page_config(page_title="Koedy", layout="wide")
 
-cookie_manager = stx.CookieManager()
-
 def check_auth():
-    """Check authentication from session state, then cookie."""
-    if st.session_state.get("authenticated"):
-        return True
-
-    saved_code = cookie_manager.get("koedy_access_code")
+    params = st.query_params
+    saved_code = params.get("code")
     if saved_code and saved_code in ACCESS_CODES:
         st.session_state.authenticated = True
         st.session_state.user_id = ACCESS_CODES[saved_code]
         return True
-
+    if st.session_state.get("authenticated"):
+        return True
     return False
 
 if not check_auth():
@@ -55,8 +50,7 @@ if not check_auth():
         if code in ACCESS_CODES:
             st.session_state.authenticated = True
             st.session_state.user_id = ACCESS_CODES[code]
-            cookie_manager.set("koedy_access_code", code, 
-                             expires_at=datetime(2026, 12, 31))
+            st.query_params["code"] = code
             st.rerun()
         else:
             st.error("Invalid access code.")
