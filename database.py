@@ -206,6 +206,35 @@ def increment_turn_counter(user_id: str) -> int:
         }).execute()
     return new_val
 
+# === Token Cost Calc ===
+
+def log_token_usage(user_id: str, call_type: str, input_tokens: int, output_tokens: int,
+                    input_cost: float, output_cost: float, total_cost: float):
+    db().table("koedy_token_usage").insert({
+        "user_id": user_id,
+        "call_type": call_type,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "input_cost": input_cost,
+        "output_cost": output_cost,
+        "total_cost": total_cost
+    }).execute()
+
+def get_user_total_usage(user_id: str) -> Dict[str, Any]:
+    result = db().table("koedy_token_usage").select("*").eq("user_id", user_id).execute()
+    if not result.data:
+        return {"input_tokens": 0, "output_tokens": 0, "total_cost": 0.0}
+
+    total_in = sum(r["input_tokens"] for r in result.data)
+    total_out = sum(r["output_tokens"] for r in result.data)
+    total_cost = sum(float(r["total_cost"]) for r in result.data)
+
+    return {
+        "input_tokens": total_in,
+        "output_tokens": total_out,
+        "total_cost": round(total_cost, 4)
+    }
+
 # === Export Functions ===
 
 def export_all_data(user_id: str) -> Dict[str, Any]:

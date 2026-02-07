@@ -19,8 +19,14 @@ from database import (
     clear_note,
     export_all_data,
     increment_turn_counter,
-    get_turn_counter
+    get_turn_counter,
+    log_token_usage,
+    get_user_total_usage
 )
+
+# Opus pricing per token (dollars/tokens)
+INPUT_COST_PER_TOKEN = 5.00 / 1_000_000
+OUTPUT_COST_PER_TOKEN = 25.00 / 1_000_000
 
 # Initialize client
 client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
@@ -118,7 +124,7 @@ def format_messages_for_api(messages: list) -> list:
             })
     return formatted
 
-def generate_summary(messages_to_summarize: list) -> str:
+def generate_summary(user_id: str, messages_to_summarize: list) -> str:
     base_prompt = load_system_prompt()
     summary_prompt = """Summarize this conversation segment concisely.
 Focus on: topics discussed, user preferences observed, decisions made, ongoing threads.
@@ -140,6 +146,13 @@ Maximize information per token. Stay under 250 words."""
         messages=[{"role": "user", "content": content + "\n\n" + summary_prompt}]
     )
 
+    usage = response.usage
+    in_tokens = usage.input_tokens
+    out_tokens = usage.output_tokens
+    in_cost = in_tokens * INPUT_COST_PER_TOKEN
+    out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
+    log_token_usage(user_id, "summary", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
+
     for block in response.content:
         if block.type == "text":
             return block.text
@@ -150,7 +163,7 @@ def check_and_summarize():
     if count >= 150:
         oldest_messages = get_oldest_messages(user_id, 50)
         if oldest_messages:
-            summary_text = generate_summary(oldest_messages)
+            summary_text = generate_summary(user_id, oldest_messages)
             total_summarized = get_total_turns_summarized(user_id)
             turn_start = total_summarized + 1
             turn_end = total_summarized + 25
@@ -287,6 +300,14 @@ if user_input := st.chat_input("What are we building today?"):
                 thinking_text = block.thinking
             elif block.type == "text":
                 response_text = block.text
+
+        # Log token usage
+        usage = response.usage
+        in_tokens = usage.input_tokens
+        out_tokens = usage.output_tokens
+        in_cost = in_tokens * INPUT_COST_PER_TOKEN
+        out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
+        log_token_usage(user_id, "message", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
 
         clean_response = process_note_tags(response_text)
 
