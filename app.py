@@ -48,17 +48,13 @@ def set_background(image_file, opacity=0.30):
             z-index: 0;
             pointer-events: none;
         }}
-        [data-testid="stChatMessage"][aria-label="user"] {{
-            background-color: rgba(8, 145, 178, 0.15);
-            border-left: 2px solid #0891B2;
-            border-radius: 8px;
-            padding: 4px 8px;
+        [data-testid="stChatMessage"] {{
+        border-left: 2px solid #0891B2;
+        border-radius: 8px;
         }}
-        [data-testid="stChatMessage"][aria-label="assistant"] {{
-            background-color: rgba(8, 145, 178, 0.06);
-            border-left: 2px solid rgba(8, 145, 178, 0.3);
-            border-radius: 8px;
-            padding: 4px 8px;
+        [data-testid="stChatMessage"] {{
+        border-left: 2px solid #0891B2;
+        border-radius: 8px;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -260,7 +256,7 @@ if "display_messages" not in st.session_state:
 
 # Sidebar
 with st.sidebar:
-    st.image("logo.png", width=100)
+    st.image("logo.png", width=125)
     st.header(f"Welcome, {user_id}")
 
     context_depth = st.radio(
