@@ -208,8 +208,7 @@ def increment_turn_counter(user_id: str) -> int:
 
 # === Token Cost Calc ===
 
-def log_token_usage(user_id: str, call_type: str, input_tokens: int, output_tokens: int,
-                    input_cost: float, output_cost: float, total_cost: float):
+def log_token_usage(user_id: str, call_type: str, input_tokens: int, output_tokens: int, input_cost: float, output_cost: float, total_cost: float):
     db().table("koedy_token_usage").insert({
         "user_id": user_id,
         "call_type": call_type,
