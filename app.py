@@ -31,7 +31,7 @@ def set_background(image_file, opacity=0.50):
     st.markdown(f"""
         <style>
         .stApp, .stApp p, .stApp span {{
-            color: #E0F2FE;
+            color: #323838;
         }}
         .stApp {{
             background-image: url("data:image/png;base64,{data}");
