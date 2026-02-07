@@ -30,6 +30,9 @@ def set_background(image_file, opacity=0.50):
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
+        .stApp, .stApp p, .stApp span {{
+            color: #E0F2FE;
+        }}
         .stApp {{
             background-image: url("data:image/png;base64,{data}");
             background-size: contain;
@@ -276,7 +279,7 @@ for msg in st.session_state.display_messages:
         with st.chat_message("user"):
             st.write(msg["content"])
     else:
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar="logo.png"):
             st.write(msg["content"])
 
 # Chat input
@@ -303,7 +306,7 @@ if user_input := st.chat_input("What are we building today?"):
     db_messages = get_messages(user_id, limit=context_depth * 2)
     api_messages = format_messages_for_api(db_messages)
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar="logo.png"):
         with st.spinner("Thinking..."):
             response = client.messages.create(
                 model="claude-opus-4-6",

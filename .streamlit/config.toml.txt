@@ -1,5 +1,2 @@
 [browser]
 gatherUsageStats = false
-
-[theme]
-textColor = "#101010"
