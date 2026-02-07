@@ -30,21 +30,21 @@ def set_background(image_file, opacity=0.69):
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
-        .stApp {{
+        [data-testid="stMain"] .block-container {{
             background-image: url("data:image/png;base64,{data}");
             background-size: contain;
             background-repeat: no-repeat;
-            background-position: center;
-            background-attachment: fixed;
+            background-position: center top;
+            position: relative;
         }}
-        .stApp::before {{
+        [data-testid="stMain"] .block-container::before {{
             content: "";
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(14, 17, 23, {1 - opacity});
+            background-color: rgba(8, 145, 178, {opacity});
             z-index: 0;
             pointer-events: none;
         }}
