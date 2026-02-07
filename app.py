@@ -42,7 +42,7 @@ def set_background(image_file, opacity=0.30):
             top: 0;
             left: 0;
             width: 100%;
-            height: 7100%;
+            height: 100%;
             background-color: rgba(14, 17, 23, {1 - opacity});
             z-index: 0;
             pointer-events: none;
@@ -247,8 +247,8 @@ if "display_messages" not in st.session_state:
 
 # Sidebar
 with st.sidebar:
+    st.image("logo.png", width=50)
     st.header(f"Welcome, {user_id}")
-    st.image("logo.png", width=150)
 
     context_depth = st.radio(
         "Context Depth",
