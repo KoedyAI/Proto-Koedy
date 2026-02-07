@@ -25,7 +25,7 @@ from database import (
 )
 import base64
 
-def set_background(image_file, opacity=0.30):
+def set_background(image_file, opacity=1.00):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
@@ -246,7 +246,7 @@ def process_note_tags(response_text: str) -> str:
     return response_text
 
 # === STREAMLIT UI ===
-st.image("logo.png", width=200)
+
 st.title("Koedy")
 
 # Initialize display messages
