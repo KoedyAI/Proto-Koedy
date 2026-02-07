@@ -38,7 +38,7 @@ def set_background(image_file, opacity=0.69):
             background-repeat: no-repeat;
         }}
         [data-testid="stChatMessage"] {{
-            background-color: rgba(8, 145, 178, 0.22);
+            background-color: rgba(8, 145, 178, 0.15);
             border-left: 3px solid #08a4b2;
             border-radius: 8px;
             padding: 8px 12px;
