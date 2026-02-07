@@ -32,7 +32,7 @@ def set_background(image_file, opacity=0.30):
         <style>
         .stApp {{
             background-image: url("data:image/png;base64,{data}");
-            background-size: cover;
+            background-size: auto 100%;
             background-position: center;
             background-attachment: fixed;
         }}
@@ -247,7 +247,7 @@ if "display_messages" not in st.session_state:
 
 # Sidebar
 with st.sidebar:
-    st.image("logo.png", width=50)
+    st.image("logo.png", width=100)
     st.header(f"Welcome, {user_id}")
 
     context_depth = st.radio(
