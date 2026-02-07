@@ -30,24 +30,12 @@ def set_background(image_file, opacity=0.69):
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
-        .block-container {{
-            position: relative;
-        }}
-        .block-container::before {{
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 730px;
-            height: 100vh;
+        .stApp {{
             background-image: url("data:image/png;base64,{data}");
-            background-size: contain;
-            background-repeat: no-repeat;
+            background-size: 730px auto;
             background-position: center top;
-            z-index: -1;
-            pointer-events: none;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
         }}
         [data-testid="stChatMessage"] {{
             background-color: rgba(8, 145, 178, 0.08);
