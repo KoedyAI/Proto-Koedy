@@ -276,7 +276,7 @@ with st.sidebar:
 # Display conversation
 for msg in st.session_state.display_messages:
     if msg["role"] == "user":
-        with st.chat_message("user"):
+        with st.chat_message("user", avatar="user_avatar"):
             st.write(msg["content"])
     else:
         with st.chat_message("assistant", avatar="logo.png"):
@@ -297,7 +297,7 @@ if user_input := st.chat_input("What are we building today?"):
     }
     st.session_state.display_messages.append(user_msg)
 
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar="user_avatar"):
         st.write(user_input)
 
     check_and_summarize()
