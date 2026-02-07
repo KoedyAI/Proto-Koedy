@@ -41,8 +41,8 @@ def set_background(image_file, opacity=0.30):
             position: fixed;
             top: 0;
             left: 0;
-            width: 70%;
-            height: 70%;
+            width: 100%;
+            height: 7100%;
             background-color: rgba(14, 17, 23, {1 - opacity});
             z-index: 0;
             pointer-events: none;
