@@ -23,6 +23,33 @@ from database import (
     log_token_usage,
     get_user_total_usage
 )
+import base64
+
+def set_background(image_file, opacity=0.12):
+    with open(image_file, "rb") as f:
+        data = base64.b64encode(f.read()).decode()
+    st.markdown(f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{data}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }}
+        .stApp::before {{
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(14, 17, 23, {1 - opacity});
+            z-index: 0;
+            pointer-events: none;
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+
 
 # Opus pricing per token (dollars/tokens)
 INPUT_COST_PER_TOKEN = 5.00 / 1_000_000
@@ -35,7 +62,8 @@ client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 ACCESS_CODES = json.loads(st.secrets["ACCESS_CODES"])
 
 # === ACCESS GATE ===
-st.set_page_config(page_title="Koedy", layout="wide")
+st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
+set_background("link_photo.png")
 
 def check_auth():
     params = st.query_params
@@ -220,6 +248,7 @@ if "display_messages" not in st.session_state:
 # Sidebar
 with st.sidebar:
     st.header(f"Welcome, {user_id}")
+    st.image("logo.png", width=150)
 
     context_depth = st.radio(
         "Context Depth",
