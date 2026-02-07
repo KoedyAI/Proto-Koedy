@@ -32,7 +32,8 @@ def set_background(image_file, opacity=0.30):
         <style>
         .stApp {{
             background-image: url("data:image/png;base64,{data}");
-            background-size: auto 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
             background-position: center;
             background-attachment: fixed;
         }}
@@ -46,6 +47,18 @@ def set_background(image_file, opacity=0.30):
             background-color: rgba(14, 17, 23, {1 - opacity});
             z-index: 0;
             pointer-events: none;
+        }}
+        [data-testid="stChatMessage"][aria-label="user"] {{
+            background-color: rgba(8, 145, 178, 0.15);
+            border-left: 2px solid #0891B2;
+            border-radius: 8px;
+            padding: 4px 8px;
+        }}
+        [data-testid="stChatMessage"][aria-label="assistant"] {{
+            background-color: rgba(8, 145, 178, 0.06);
+            border-left: 2px solid rgba(8, 145, 178, 0.3);
+            border-radius: 8px;
+            padding: 4px 8px;
         }}
         </style>
     """, unsafe_allow_html=True)
