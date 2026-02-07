@@ -31,13 +31,24 @@ def set_background(image_file, opacity=0.69):
     st.markdown(f"""
         <style>
         .block-container {{
+            position: relative;
+        }}
+        .block-container::before {{
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 730px;
+            height: 100vh;
             background-image: url("data:image/png;base64,{data}");
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center top;
-            background-attachment: fixed;
+            z-index: -1;
+            pointer-events: none;
         }}
-        
         [data-testid="stChatMessage"] {{
             background-color: rgba(8, 145, 178, 0.08);
             border-left: 3px solid #0891B2;
