@@ -47,6 +47,7 @@ def set_background(image_file, opacity=0.30):
             background-color: rgba(14, 17, 23, {1 - opacity});
             z-index: 0;
             pointer-events: none;
+        }}
         [data-testid="stChatMessage"] {{
             background-color: rgba(8, 145, 178, 0.08);
             border-left: 3px solid #0891B2;
