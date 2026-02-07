@@ -47,14 +47,12 @@ def set_background(image_file, opacity=0.30):
             background-color: rgba(14, 17, 23, {1 - opacity});
             z-index: 0;
             pointer-events: none;
-        }}
         [data-testid="stChatMessage"] {{
-        border-left: 2px solid #0891B2;
-        border-radius: 8px;
-        }}
-        [data-testid="stChatMessage"] {{
-        border-left: 2px solid #0891B2;
-        border-radius: 8px;
+            background-color: rgba(8, 145, 178, 0.08);
+            border-left: 3px solid #0891B2;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -247,7 +245,7 @@ def process_note_tags(response_text: str) -> str:
     return response_text
 
 # === STREAMLIT UI ===
-
+st.image("logo.png", width=200)
 st.title("Koedy")
 
 # Initialize display messages
@@ -256,7 +254,6 @@ if "display_messages" not in st.session_state:
 
 # Sidebar
 with st.sidebar:
-    st.image("logo.png", width=125)
     st.header(f"Welcome, {user_id}")
 
     context_depth = st.radio(
