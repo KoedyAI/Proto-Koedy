@@ -25,7 +25,7 @@ from database import (
 )
 import base64
 
-def set_background(image_file, opacity=0.69):
+def set_background(image_file, opacity=0.50):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
@@ -38,7 +38,7 @@ def set_background(image_file, opacity=0.69):
             background-repeat: no-repeat;
         }}
         [data-testid="stChatMessage"] {{
-            background-color: rgba(8, 145, 178, 0.13);
+            background-color: rgba(8, 145, 178, 0.12);
             border-left: 3px solid #08a4b2;
             border-radius: 8px;
             padding: 8px 12px;
