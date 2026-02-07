@@ -35,6 +35,7 @@ def set_background(image_file, opacity=0.69):
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center top;
+            background-attachment: fixed;
         }}
         
         [data-testid="stChatMessage"] {{
