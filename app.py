@@ -55,10 +55,6 @@ def set_background(image_file, opacity=0.50):
         margin-bottom: 8px;
     }}
 
-    /* Placeholder text visible */
-    [data-testid="stChatInputTextArea"]::placeholder {{
-        color: #9BB8D3 !important;
-    }}
     /* Submit button background */
     [data-testid="stChatInputSubmitButton"] {{
         background-color: #2A3F5F !important;
