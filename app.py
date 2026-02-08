@@ -29,7 +29,7 @@ def set_background(image_file, opacity=0.50):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
-        <style>
+    <style>
     /* Background image */
     .stApp {{
         background-image: url("data:image/png;base64,{data}");
@@ -71,7 +71,19 @@ def set_background(image_file, opacity=0.50):
     [data-testid="stChatInputSubmitButton"] svg {{
         color: #0891B2 !important;
     }}
-        </style>
+    /* Chat input text - light mode */
+    @media (prefers-color-scheme: light) {{
+        [data-testid="stChatInputTextArea"] {{
+            color: #0891B2 !important;
+        }}
+    }}
+    /* Chat input text - dark mode */
+    @media (prefers-color-scheme: dark) {{
+        [data-testid="stChatInputTextArea"] {{
+            color: #E0F2FE !important;
+        }}
+    }}
+    </style>
     """, unsafe_allow_html=True)
 
 
