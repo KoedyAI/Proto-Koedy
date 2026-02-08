@@ -248,7 +248,10 @@ if "display_messages" not in st.session_state:
 # Sidebar
 with st.sidebar:
     st.header(f"Welcome, {user_id}")
+    st.caption("Actually gets to know you, not just facts about you.")
+    st.caption("The more you share, the better I understand.")
 
+    st.divider()
     context_depth = st.radio(
         "Context Depth",
         options=[10, 30, 50],
@@ -283,7 +286,7 @@ for msg in st.session_state.display_messages:
             st.write(msg["content"])
 
 # Chat input
-if user_input := st.chat_input("What are we building today?"):
+if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
     turn_number = increment_turn_counter(user_id)
     user_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
     turn_display.write(f"Turn: {turn_number}")
