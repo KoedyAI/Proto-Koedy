@@ -62,6 +62,15 @@ def set_background(image_file, opacity=0.50):
     [data-testid="stChatInputTextArea"]::placeholder {{
         color: #9BB8D3 !important;
     }}
+    /* Submit button background */
+    [data-testid="stChatInputSubmitButton"] {{
+        background-color: #2A3F5F !important;
+        border: none !important;
+    }}
+    /* Submit arrow teal */
+    [data-testid="stChatInputSubmitButton"] svg {{
+        color: #0891B2 !important;
+    }}
         </style>
     """, unsafe_allow_html=True)
 
