@@ -47,7 +47,7 @@ def set_background(image_file, opacity=0.50):
         }}
 
         /* User bubbles */
-        [data-testid="stChatMessage"][aria-label*="Chat message from user"] {{
+        [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {{
             background-color: rgba(8, 145, 178, 0.12);
             border-left: 3px solid #0891B2;
             border-radius: 8px;
@@ -56,7 +56,7 @@ def set_background(image_file, opacity=0.50):
         }}
 
         /* Koedy bubbles */
-        [data-testid="stChatMessage"][aria-label*="Chat message from assistant"] {{
+        [data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) {{
             background-color: rgba(22, 32, 50, 0.7);
             border-left: 3px solid #2A3F5F;
             border-radius: 8px;
