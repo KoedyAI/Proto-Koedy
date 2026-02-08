@@ -77,12 +77,7 @@ def set_background(image_file, opacity=0.50):
             color: #0891B2 !important;
         }}
     }}
-    /* Chat input text - dark mode */
-    @media (prefers-color-scheme: dark) {{
-        [data-testid="stChatInputTextArea"] {{
-            color: #E0F2FE !important;
-        }}
-    }}
+
     </style>
     """, unsafe_allow_html=True)
 
