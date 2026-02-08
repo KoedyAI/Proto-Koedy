@@ -103,6 +103,17 @@ def set_background(image_file, opacity=0.50):
                 color: #0891B2 !important;
             }}
         }}
+
+        /* Input focus border */
+        [data-baseweb="textarea"]:focus-within {{
+            border-color: #0891B2 !important;
+            box-shadow: 0 0 0 1px #0891B2 !important;
+        }}
+
+        /* Radio button accent */
+        .stRadio input[type="radio"] {{
+            accent-color: #0891B2 !important;
+        }}
         </style>
     """, unsafe_allow_html=True)
 
