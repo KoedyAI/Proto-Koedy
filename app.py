@@ -56,7 +56,7 @@ def set_background(image_file, opacity=0.50):
     }}
     /* Tagline captions */
     .stCaption, [data-testid="stCaptionContainer"] {{
-        color: #badeff !important;
+        color: #0891B2 !important;
     }}
     /* Placeholder text visible */
     [data-testid="stChatInputTextArea"]::placeholder {{
