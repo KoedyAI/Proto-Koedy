@@ -30,9 +30,14 @@ def set_background(image_file, opacity=0.50):
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
-        .stApp, .stApp p, .stApp span {{
-            color: #E0F2FE;
+        /* All text colors */
+        .stApp h1, .stApp h2, .stApp h3, .stApp h4,
+        .stApp p, .stApp span, .stApp label,
+        .stApp li {{
+            color: #E0F2FE !important;
         }}
+
+        /* Background image */
         .stApp {{
             background-image: url("data:image/png;base64,{data}");
             background-size: contain;
@@ -40,12 +45,37 @@ def set_background(image_file, opacity=0.50):
             background-attachment: fixed;
             background-repeat: no-repeat;
         }}
+
+        /* Chat bubbles */
         [data-testid="stChatMessage"] {{
             background-color: rgba(8, 145, 178, 0.12);
             border-left: 3px solid #0891B2;
             border-radius: 8px;
             padding: 8px 12px;
             margin-bottom: 8px;
+        }}
+
+        /* Sidebar background */
+        [data-testid="stSidebar"] {{
+            background-color: #162032;
+        }}
+
+        /* Sidebar text */
+        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] p, [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] label {{
+            color: #E0F2FE !important;
+        }}
+
+        /* Chat input box */
+        [data-testid="stChatInput"] textarea {{
+            color: #E0F2FE !important;
+            background-color: #1A2535 !important;
+        }}
+
+        /* Tagline captions */
+        .stCaption, [data-testid="stCaptionContainer"] {{
+            color: #9BB8D3 !important;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -248,8 +278,8 @@ if "display_messages" not in st.session_state:
 # Sidebar
 with st.sidebar:
     st.header(f"Welcome, {user_id}")
-    st.caption("I actually get to know and understand you,")
-    st.caption("Not just learn facts about you:")
+    st.caption("I get to know you,")
+    st.caption("Not just your questions:")
     st.caption("The more you share, the better I understand")
 
     st.divider()
