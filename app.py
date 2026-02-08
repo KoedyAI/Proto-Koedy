@@ -248,9 +248,9 @@ if "display_messages" not in st.session_state:
 # Sidebar
 with st.sidebar:
     st.header(f"Welcome, {user_id}")
-    st.caption("Actually learns to understand and")
-    st.caption("gets to know you, not just facts about you.")
-    st.caption("The more you share, the better I understand.")
+    st.caption("I actually get to know you")
+    st.caption("To learn and understand you, not just facts about you")
+    st.caption("The more you share, the better I understand")
 
     st.divider()
     context_depth = st.radio(
