@@ -77,7 +77,12 @@ def set_background(image_file, opacity=0.50):
         .stCaption, [data-testid="stCaptionContainer"] {{
             color: #9BB8D3 !important;
         }}
-
+        
+        /* Submit button background */
+        [data-testid="stChatInputSubmitButton"] {{
+            background-color: #162032 !important;
+            border: none !important;
+        }}
         /* Submit arrow teal */
         [data-testid="stChatInputSubmitButton"] svg {{
             color: #0891B2 !important;
