@@ -248,7 +248,8 @@ if "display_messages" not in st.session_state:
 # Sidebar
 with st.sidebar:
     st.header(f"Welcome, {user_id}")
-    st.caption("Actually gets to know you, not just facts about you.")
+    st.caption("Actually gets to know you,")
+    st.caption("not just facts about you.")
     st.caption("The more you share, the better I understand.")
 
     st.divider()
