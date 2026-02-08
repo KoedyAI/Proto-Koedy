@@ -30,13 +30,6 @@ def set_background(image_file, opacity=0.50):
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
         <style>
-        /* All text colors */
-        .stApp h1, .stApp h2, .stApp h3, .stApp h4,
-        .stApp p, .stApp span, .stApp label,
-        .stApp li {{
-            color: #E0F2FE !important;
-        }}
-
         /* Background image */
         .stApp {{
             background-image: url("data:image/png;base64,{data}");
@@ -44,58 +37,6 @@ def set_background(image_file, opacity=0.50):
             background-position: center top;
             background-attachment: fixed;
             background-repeat: no-repeat;
-        }}
-
-        /* User bubbles */
-        [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {{
-            background-color: rgba(8, 145, 178, 0.12);
-            border-left: 3px solid #0891B2;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-bottom: 8px;
-        }}
-        /* Koedy bubbles */
-        [data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) {{
-            background-color: rgba(22, 32, 50, 0.7);
-            border-left: 3px solid #2A3F5F;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-bottom: 8px;
-        }}
-
-        /* Sidebar background */
-        [data-testid="stSidebar"] {{
-            background-color: #162032;
-        }}
-        /* Sidebar text */
-        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
-        [data-testid="stSidebar"] p, [data-testid="stSidebar"] span,
-        [data-testid="stSidebar"] label {{
-            color: #E0F2FE !important;
-        }}
-        /* Tagline captions */
-        .stCaption, [data-testid="stCaptionContainer"] {{
-            color: #9BB8D3 !important;
-        }}
-
-        /* Submit button background */
-        [data-testid="stChatInputSubmitButton"] {{
-            background-color: #2A3F5F !important;
-            border: none !important;
-        }}
-        /* Submit arrow teal */
-        [data-testid="stChatInputSubmitButton"] svg {{
-            color: #0891B2 !important;
-        }}
-        /* Placeholder text visible */
-        [data-testid="stChatInputTextArea"]::placeholder {{
-            color: #9BB8D3 !important;
-        }}
-        /* Chat input text - light mode */
-        @media (prefers-color-scheme: light) {{
-            [data-testid="stChatInputTextArea"] {{
-                color: #0891B2 !important;
-            }}
         }}
         </style>
     """, unsafe_allow_html=True)
