@@ -66,6 +66,11 @@ def set_background(image_file, opacity=0.50):
     [data-testid="stChatInputSubmitButton"] svg {{
         color: #0891B2 !important;
     }}
+    /* Submit button background */
+    [data-testid="stChatInputSubmitButton"] {{
+        background-color: #2A3F5F !important;
+        border: none !important;
+    }}
     /* Chat input text - light mode */
     @media (prefers-color-scheme: light) {{
         [data-testid="stChatInputTextArea"] {{
