@@ -2,4 +2,4 @@
 gatherUsageStats = false
 
 [theme]
-primaryColor = "#0891B2"
+backgroundColor = "#0891B2"
