@@ -54,7 +54,6 @@ def set_background(image_file, opacity=0.50):
             padding: 8px 12px;
             margin-bottom: 8px;
         }}
-
         /* Koedy bubbles */
         [data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) {{
             background-color: rgba(22, 32, 50, 0.7);
@@ -68,7 +67,6 @@ def set_background(image_file, opacity=0.50):
         [data-testid="stSidebar"] {{
             background-color: #162032;
         }}
-
         /* Sidebar text */
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
         [data-testid="stSidebar"] p, [data-testid="stSidebar"] span,
@@ -79,30 +77,14 @@ def set_background(image_file, opacity=0.50):
         .stCaption, [data-testid="stCaptionContainer"] {{
             color: #9BB8D3 !important;
         }}
-        /* Bottom bar background */
-        [data-testid="stBottom"] {{
-            background-color: #0F1724 !important;
-        }}
 
-        /* Chat input outer border */
-        [data-baseweb="textarea"] {{
-            background-color: #1A2535 !important;
-            border-color: #2A3F5F !important;
-        }}
-
-        /* Chat input inner wrapper */
-        [data-baseweb="base-input"] {{
-            background-color: #1A2535 !important;
-        }}
-
-        /* Textarea text */
-        [data-testid="stChatInputTextArea"] {{
-            color: #E0F2FE !important;
-            background-color: #1A2535 !important;
-        }}
-        /* Submit arrow color */
+        /* Submit arrow teal */
         [data-testid="stChatInputSubmitButton"] svg {{
             color: #0891B2 !important;
+        }}
+        /* Placeholder text visible */
+        [data-testid="stChatInputTextArea"]::placeholder {{
+            color: #9BB8D3 !important;
         }}
         </style>
     """, unsafe_allow_html=True)
