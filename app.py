@@ -100,7 +100,7 @@ def set_background(image_file, opacity=0.50):
         /* Chat input text - light mode */
         @media (prefers-color-scheme: light) {{
             [data-testid="stChatInputTextArea"] {{
-                color: #2A3F5F !important;
+                color: #9BB8D3 !important;
             }}
         }}
         </style>
