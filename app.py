@@ -25,7 +25,7 @@ from database import (
 )
 import base64
 
-def set_background(image_file, opacity=0.35):
+def set_background(image_file, opacity=0.10):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
