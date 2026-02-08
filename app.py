@@ -75,6 +75,10 @@ def set_background(image_file, opacity=0.50):
         [data-testid="stSidebar"] label {{
             color: #E0F2FE !important;
         }}
+        /* Tagline captions */
+        .stCaption, [data-testid="stCaptionContainer"] {{
+            color: #9BB8D3 !important;
+        }}
 
         /* Chat input box */
         [data-testid="stChatInput"] textarea {{
@@ -86,9 +90,30 @@ def set_background(image_file, opacity=0.50):
             background-color: #1A2535 !important;
             border-color: #2A3F5F !important;
         }}
-        /* Tagline captions */
-        .stCaption, [data-testid="stCaptionContainer"] {{
-            color: #9BB8D3 !important;
+        /* Bottom bar background */
+        [data-testid="stBottom"] {{
+            background-color: #0F1724 !important;
+        }}
+
+        /* Chat input outer border */
+        [data-baseweb="textarea"] {{
+            background-color: #1A2535 !important;
+            border-color: #2A3F5F !important;
+        }}
+
+        /* Chat input inner wrapper */
+        [data-baseweb="base-input"] {{
+            background-color: #1A2535 !important;
+        }}
+
+        /* Textarea text */
+        [data-testid="stChatInputTextArea"] {{
+            color: #E0F2FE !important;
+            background-color: #1A2535 !important;
+        }}
+        /* Submit arrow color */
+        [data-testid="stChatInputSubmitButton"] svg {{
+            color: #0891B2 !important;
         }}
         </style>
     """, unsafe_allow_html=True)
