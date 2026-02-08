@@ -46,10 +46,19 @@ def set_background(image_file, opacity=0.50):
             background-repeat: no-repeat;
         }}
 
-        /* Chat bubbles */
-        [data-testid="stChatMessage"] {{
+        /* User chat bubbles */
+        [data-testid="stChatMessage"][aria-label*="user"] {{
             background-color: rgba(8, 145, 178, 0.12);
             border-left: 3px solid #0891B2;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }}
+
+        /* Koedy chat bubbles */
+        [data-testid="stChatMessage"][aria-label*="assistant"] {{
+            background-color: rgba(22, 32, 50, 0.7);
+            border-left: 3px solid #2A3F5F;
             border-radius: 8px;
             padding: 8px 12px;
             margin-bottom: 8px;
@@ -72,7 +81,11 @@ def set_background(image_file, opacity=0.50):
             color: #E0F2FE !important;
             background-color: #1A2535 !important;
         }}
-
+        /* Chat input full container */
+        [data-testid="stChatInput"] {{
+            background-color: #1A2535 !important;
+            border-color: #2A3F5F !important;
+        }}
         /* Tagline captions */
         .stCaption, [data-testid="stCaptionContainer"] {{
             color: #9BB8D3 !important;
