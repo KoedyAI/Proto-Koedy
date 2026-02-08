@@ -91,7 +91,12 @@ def set_background(image_file, opacity=0.50):
         [data-testid="stChatInputTextArea"]::placeholder {{
             color: #9BB8D3 !important;
         }}
-        
+        /* Chat input text - light mode */
+        @media (prefers-color-scheme: light) {{
+            [data-testid="stChatInputTextArea"] {{
+                color: #0891B2 !important;
+            }}
+        }}
         </style>
     """, unsafe_allow_html=True)
 
