@@ -2,4 +2,9 @@
 gatherUsageStats = false
 
 [theme]
+base = "dark"
 primaryColor = "#0891B2"
+backgroundColor = "#0F1724"
+secondaryBackgroundColor = "#162032"
+textColor = "#E0F2FE"
+font = "sans serif"
