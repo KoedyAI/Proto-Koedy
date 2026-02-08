@@ -54,10 +54,7 @@ def set_background(image_file, opacity=0.50):
         padding: 8px 12px;
         margin-bottom: 8px;
     }}
-    /* Tagline captions */
-    .stCaption, [data-testid="stCaptionContainer"] {{
-        color: #9BB8D3 !important;
-    }}
+
     /* Placeholder text visible */
     [data-testid="stChatInputTextArea"]::placeholder {{
         color: #9BB8D3 !important;
