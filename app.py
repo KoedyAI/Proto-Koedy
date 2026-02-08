@@ -78,7 +78,7 @@ def set_background(image_file, opacity=0.50):
         /* Tagline captions */
         .stCaption, [data-testid="stCaptionContainer"] {{
             color: #9BB8D3 !important;
-        
+        }}
         /* Bottom bar background */
         [data-testid="stBottom"] {{
             background-color: #0F1724 !important;
