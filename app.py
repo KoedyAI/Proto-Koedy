@@ -378,7 +378,11 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
     with st.chat_message("user", avatar="chat_logo.png"):
         st.write(user_input)
 
-    check_and_summarize()
+    # Check if summarization needed
+    with st.spinner("Getting to know you better..."):
+        summarized = check_and_summarize()
+    if summarized:
+        st.toast("✨ Memory updated")
 
     full_system_prompt = build_full_system_prompt()
     db_messages = get_messages(user_id, limit=context_depth * 2)
