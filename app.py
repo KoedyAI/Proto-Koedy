@@ -188,13 +188,17 @@ def generate_summary(messages_to_summarize: list, turn_start: int, turn_end: int
 
     summary_prompt = f"""Summarize this conversation segment (Turns {turn_start}-{turn_end}). Begin your summary with the turn range.
 
-Prioritize user calibration above all else. Extract personality, preferences, communication style, emotional patterns, and relationship dynamics that would help Koedy serve this user better in future conversations.
-
+Prioritize user calibration above all else. This summary exists so Koedy can know and serve this user better over time.
+Extract and preserve:
+- Who the user is: personality traits, values, communication style, humor, depth preference
+- What matters to them: ongoing life situations, relationships, stressors, goals, interests
+- Emotional patterns: what affects them, how they process, what support looks like for them
+- Interaction dynamics: what works well, what falls flat, how they respond to different approaches
+- Ongoing threads: unresolved topics, commitments made, things to follow up on
 Guidelines:
-- Weight relational and emotional context over technical minutiae
-- Do not significantly overlap with previous summaries; reference ongoing threads but add new context
-- Focus on: who the user is, decisions made, emotional moments, topics that matter to them, ongoing threads
-- Include context tags: simple labels [creative, technical, personal, etc.]
+- Weight relational and emotional context over technical minutiae; who the user IS matters more than what they asked about
+- Do not significantly overlap with previous summaries; reference ongoing threads but add new context rather than restating
+- Include context tags: simple labels [creative, technical, personal, emotional, etc.]
 - Maximize information per token; no markdown (this summary is for your own context, not the user)
 - Do not exceed 250 words unless critical calibration information would be lost"""
 
