@@ -267,7 +267,7 @@ def compress_summary_to_ah(user_id: str, summary: dict) -> str:
     """Compress a summary into ancient history bullet points."""
     base_prompt = load_system_prompt()
 
-    compression_prompt = """Compress the following conversation summary into 2-3 concise bullet points for long-term ancient history storage.
+    compression_prompt = """Compress the following conversation summary into 1-4 concise bullet points for long-term ancient history storage. Use fewer when the conversation segment is straightforward; use more only when significant calibration details would be lost.
 
 Preserve only what matters for ongoing calibration with this user:
 - Key discoveries about who they are
