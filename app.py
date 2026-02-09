@@ -13,6 +13,11 @@ from database import (
     add_summary,
     get_recent_summaries,
     get_total_turns_summarized,
+    get_non_archived_summary_count,
+    get_oldest_non_archived_summary,
+    mark_summary_archived,
+    get_ancient_history,
+    add_ancient_history_entry,
     search_extended_history,
     get_all_notes,
     set_note,
@@ -131,13 +136,23 @@ def load_system_prompt():
 def build_full_system_prompt():
     base_prompt = load_system_prompt()
 
-    summaries = get_recent_summaries(user_id, limit=6)
+    # Add ancient history
+    ah_entries = get_ancient_history(user_id)
+    if ah_entries:
+        ah_section = "\n\n=== Ancient Conversation History ===\n"
+        for entry in ah_entries:
+            ah_section += f"\n{entry['turn_range']}:\n{entry['content']}\n"
+        base_prompt += ah_section
+
+    # Add recent summaries
+    summaries = get_recent_summaries(user_id, limit=2)
     if summaries:
         summary_section = "\n\n=== EXTENDED CONVERSATION HISTORY ===\n"
         for s in summaries:
             summary_section += f"\nTurns {s['turn_start']}-{s['turn_end']} Summary:\n{s['summary_text']}\n"
         base_prompt += summary_section
 
+    # Add notes
     notes = get_all_notes(user_id)
     notes_section = "\n\n=== NOTES ===\n"
     has_notes = False
@@ -182,19 +197,21 @@ def format_messages_for_api(messages: list) -> list:
             })
     return formatted
 
-def generate_summary(messages_to_summarize: list, turn_start: int, turn_end: int) -> str:
+def generate_summary(user_id: str, messages_to_summarize: list, turn_start: int, turn_end: int) -> str:
     """Generate a summary of messages using a hidden API call."""
     base_prompt = load_system_prompt()
 
     summary_prompt = f"""Summarize this conversation segment (Turns {turn_start}-{turn_end}). Begin your summary with the turn range.
 
 Prioritize user calibration above all else. This summary exists so Koedy can know and serve this user better over time.
+
 Extract and preserve:
 - Who the user is: personality traits, values, communication style, humor, depth preference
 - What matters to them: ongoing life situations, relationships, stressors, goals, interests
 - Emotional patterns: what affects them, how they process, what support looks like for them
 - Interaction dynamics: what works well, what falls flat, how they respond to different approaches
 - Ongoing threads: unresolved topics, commitments made, things to follow up on
+
 Guidelines:
 - Weight relational and emotional context over technical minutiae; who the user IS matters more than what they asked about
 - Do not significantly overlap with previous summaries; reference ongoing threads but add new context rather than restating
@@ -203,7 +220,7 @@ Guidelines:
 - Do not exceed 250 words unless critical calibration information would be lost"""
 
     # Fetch previous summaries for context threading
-    prev_summaries = get_recent_summaries(limit=2)
+    prev_summaries = get_recent_summaries(user_id, limit=2)
 
     # Build content with previous summary context
     content = ""
@@ -215,7 +232,7 @@ Guidelines:
 
     content += "New conversation segment to summarize:\n\n"
     for msg in messages_to_summarize:
-        role = "User" if msg["role"] == "user" else "Assistant"
+        role = "User" if msg["role"] == "user" else "Koedy"
         content += f"{role}: {msg['content']}\n\n"
 
     content += "\n\n" + summary_prompt
@@ -246,25 +263,66 @@ Guidelines:
             return block.text
     return ""
 
-def check_and_summarize():
+def compress_summary_to_ah(user_id: str, summary: dict) -> str:
+    """Compress a summary into ancient history bullet points."""
+    base_prompt = load_system_prompt()
+
+    compression_prompt = """Compress the following conversation summary into 2-3 concise bullet points for long-term ancient history storage.
+
+Preserve only what matters for ongoing calibration with this user:
+- Key discoveries about who they are
+- Significant emotional moments or relationship developments
+- Decisions or commitments that affect future conversations
+- Context that would be lost without preservation
+
+Be extremely concise. Maximize information per token. No markdown. Each bullet should be one substantive line starting with a dash."""
+
+    content = f"Summary of Turns {summary['turn_start']}-{summary['turn_end']}:\n{summary['summary_text']}\n\n{compression_prompt}"
+
+    response = client.messages.create(
+        model="claude-opus-4-6",
+        max_tokens=2000,
+        system=base_prompt,
+        thinking={
+            "type": "enabled",
+            "budget_tokens": 2000
+        },
+        messages=[{
+            "role": "user",
+            "content": content
+        }]
+    )
+
+    usage = response.usage
+    in_tokens = usage.input_tokens
+    out_tokens = usage.output_tokens
+    in_cost = in_tokens * INPUT_COST_PER_TOKEN
+    out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
+    log_token_usage(user_id, "compression", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
+
+    for block in response.content:
+        if block.type == "text":
+            return block.text
+    return ""
+
+def check_and_summarize(user_id: str):
     """Check if we need to summarize and do it."""
-    count = get_message_count()
+    count = get_message_count(user_id)
 
     if count >= 100:  # 50 turns = 100 messages
-        # Get the 25 oldest messages (turns 26-50 equivalent)
-        oldest_messages = get_oldest_messages(50) # 25 turns = 50 messages
+        oldest_messages = get_oldest_messages(user_id, 50)  # 25 turns = 50 messages
 
         if oldest_messages:
             # Calculate turn numbers first (needed for summary prompt)
-            total_summarized = get_total_turns_summarized()
+            total_summarized = get_total_turns_summarized(user_id)
             turn_start = total_summarized + 1
             turn_end = total_summarized + 25
 
             # Generate summary with turn range context
-            summary_text = generate_summary(oldest_messages, turn_start, turn_end)
+            summary_text = generate_summary(user_id, oldest_messages, turn_start, turn_end)
 
             # Save summary
-            summary_id = add_summary(turn_start, turn_end, summary_text)
+            summary_id = add_summary(user_id, turn_start, turn_end, summary_text)
 
             # Archive messages to extended history
             summary_entry = {
@@ -273,11 +331,24 @@ def check_and_summarize():
                 "thinking": None,
                 "timestamp": datetime.now(PT).strftime("%Y-%m-%d %H:%M:%S")
             }
-            archive_messages(oldest_messages + [summary_entry], summary_id)
+            archive_messages(user_id, oldest_messages + [summary_entry], summary_id)
 
             # Delete from active messages
             ids_to_delete = [msg["id"] for msg in oldest_messages]
             delete_messages_by_ids(ids_to_delete)
+
+            # Check if summaries need compression to AH
+            non_archived_count = get_non_archived_summary_count(user_id)
+            while non_archived_count > 2:
+                oldest = get_oldest_non_archived_summary(user_id)
+                if oldest:
+                    ah_content = compress_summary_to_ah(user_id, oldest)
+                    turn_range = f"Turns {oldest['turn_start']}-{oldest['turn_end']}"
+                    add_ancient_history_entry(user_id, turn_range, ah_content)
+                    mark_summary_archived(oldest['id'])
+                    non_archived_count -= 1
+                else:
+                    break
 
             return True
     return False
@@ -285,21 +356,21 @@ def check_and_summarize():
 def process_note_tags(response_text: str) -> str:
     import re
 
-    active_match = re.search(r'\[ACTIVE NOTE:\s*([\s\S]*?)\]', response_text)
+    active_match = re.search(r'\*?)\]', response_text)
     if active_match:
         content = active_match.group(1).strip()
         if len(content) <= 2500:
             set_note(user_id, "active", content)
         response_text = response_text.replace(active_match.group(0), "").strip()
 
-    ongoing_match = re.search(r'\[ONGOING NOTE:\s*([\s\S]*?)\]', response_text)
+    ongoing_match = re.search(r'\*?)\]', response_text)
     if ongoing_match:
         content = ongoing_match.group(1).strip()
         if len(content) <= 5000:
             set_note(user_id, "ongoing", content)
         response_text = response_text.replace(ongoing_match.group(0), "").strip()
 
-    permanent_match = re.search(r'\[PERMANENT NOTE:\s*([\s\S]*?)\]', response_text)
+    permanent_match = re.search(r'\*?)\]', response_text)
     if permanent_match:
         content = permanent_match.group(1).strip()
         if len(content) <= 10000:
@@ -380,7 +451,7 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
 
     # Check if summarization needed
     with st.spinner("Getting to know you better..."):
-        summarized = check_and_summarize()
+        summarized = check_and_summarize(user_id)
     if summarized:
         st.toast("✨ Memory updated")
 

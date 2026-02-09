@@ -81,8 +81,8 @@ def add_summary(user_id: str, turn_start: int, turn_end: int, summary_text: str)
     }).execute()
     return result.data[0]["id"] if result.data else 0
 
-def get_recent_summaries(user_id: str, limit: int = 6) -> List[Dict[str, Any]]:
-    result = db().table("koedy_summaries").select("*").eq("user_id", user_id).order("id", desc=True).limit(limit).execute()
+def get_recent_summaries(user_id: str, limit: int = 2) -> List[Dict[str, Any]]:
+    result = db().table("koedy_summaries").select("*").eq("user_id", user_id).eq("archived", False).order("id", desc=True).limit(limit).execute()
     if not result.data:
         return []
     rows = list(reversed(result.data))
@@ -99,6 +99,30 @@ def get_total_turns_summarized(user_id: str) -> int:
     if result.data:
         return result.data[0]["turn_end"]
     return 0
+
+def get_non_archived_summary_count(user_id: str) -> int:
+    result = db().table("koedy_summaries").select("id").eq("user_id", user_id).eq("archived", False).execute()
+    return len(result.data) if result.data else 0
+
+def get_oldest_non_archived_summary(user_id: str):
+    result = db().table("koedy_summaries").select("*").eq("user_id", user_id).eq("archived", False).order("id").limit(1).execute()
+    return result.data[0] if result.data else None
+
+def mark_summary_archived(summary_id: int):
+    db().table("koedy_summaries").update({"archived": True}).eq("id", summary_id).execute()
+
+# === Ancient History Functions ===
+
+def get_ancient_history(user_id: str) -> List[Dict[str, Any]]:
+    result = db().table("koedy_ancient_history").select("*").eq("user_id", user_id).order("id").execute()
+    return result.data if result.data else []
+
+def add_ancient_history_entry(user_id: str, turn_range: str, content: str):
+    db().table("koedy_ancient_history").insert({
+        "user_id": user_id,
+        "turn_range": turn_range,
+        "content": content
+    }).execute()
 
 # === Extended History Functions ===
 
@@ -240,9 +264,11 @@ def export_all_data(user_id: str) -> Dict[str, Any]:
     messages = get_messages(user_id)
     sum_result = db().table("koedy_summaries").select("*").eq("user_id", user_id).order("id", desc=False).execute()
     summaries = sum_result.data if sum_result.data else []
+    ancient = get_ancient_history(user_id)
     return {
         "messages": messages,
         "summaries": summaries,
+        "ancient_history": ancient,
         "notes": get_all_notes(user_id),
         "turn_counter": get_turn_counter(user_id),
         "exported_at": datetime.now().isoformat()
