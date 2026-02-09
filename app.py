@@ -182,16 +182,39 @@ def format_messages_for_api(messages: list) -> list:
             })
     return formatted
 
-def generate_summary(user_id: str, messages_to_summarize: list) -> str:
+def generate_summary(messages_to_summarize: list, turn_start: int, turn_end: int) -> str:
+    """Generate a summary of messages using a hidden API call."""
     base_prompt = load_system_prompt()
-    summary_prompt = """Summarize this conversation segment concisely.
-Focus on: topics discussed, user preferences observed, decisions made, ongoing threads.
-Maximize information per token. Stay under 250 words."""
 
-    content = "Conversation segment to summarize:\n\n"
+    summary_prompt = f"""Summarize this conversation segment (Turns {turn_start}-{turn_end}). Begin your summary with the turn range.
+
+Prioritize user calibration above all else. Extract personality, preferences, communication style, emotional patterns, and relationship dynamics that would help Koedy serve this user better in future conversations.
+
+Guidelines:
+- Weight relational and emotional context over technical minutiae
+- Do not significantly overlap with previous summaries; reference ongoing threads but add new context
+- Focus on: who the user is, decisions made, emotional moments, topics that matter to them, ongoing threads
+- Include context tags: simple labels [creative, technical, personal, etc.]
+- Maximize information per token; no markdown (this summary is for your own context, not the user)
+- Do not exceed 250 words unless critical calibration information would be lost"""
+
+    # Fetch previous summaries for context threading
+    prev_summaries = get_recent_summaries(limit=2)
+
+    # Build content with previous summary context
+    content = ""
+    if prev_summaries:
+        content += "Previous summaries for context continuity (do not repeat — use to connect threads and reduce overlap):\n\n"
+        for s in prev_summaries:
+            content += f"Turns {s['turn_start']}-{s['turn_end']}: {s['summary_text']}\n\n"
+        content += "---\n\n"
+
+    content += "New conversation segment to summarize:\n\n"
     for msg in messages_to_summarize:
-        role = "User" if msg["role"] == "user" else "Koedy"
+        role = "User" if msg["role"] == "user" else "Assistant"
         content += f"{role}: {msg['content']}\n\n"
+
+    content += "\n\n" + summary_prompt
 
     response = client.messages.create(
         model="claude-opus-4-6",
@@ -201,7 +224,10 @@ Maximize information per token. Stay under 250 words."""
             "type": "enabled",
             "budget_tokens": 3500
         },
-        messages=[{"role": "user", "content": content + "\n\n" + summary_prompt}]
+        messages=[{
+            "role": "user",
+            "content": content
+        }]
     )
 
     usage = response.usage
@@ -217,24 +243,38 @@ Maximize information per token. Stay under 250 words."""
     return ""
 
 def check_and_summarize():
-    count = get_message_count(user_id)
-    if count >= 150:
-        oldest_messages = get_oldest_messages(user_id, 50)
+    """Check if we need to summarize and do it."""
+    count = get_message_count()
+
+    if count >= 100:  # 50 turns = 100 messages
+        # Get the 25 oldest messages (turns 26-50 equivalent)
+        oldest_messages = get_oldest_messages(50) # 25 turns = 50 messages
+
         if oldest_messages:
-            summary_text = generate_summary(user_id, oldest_messages)
-            total_summarized = get_total_turns_summarized(user_id)
+            # Calculate turn numbers first (needed for summary prompt)
+            total_summarized = get_total_turns_summarized()
             turn_start = total_summarized + 1
             turn_end = total_summarized + 25
-            summary_id = add_summary(user_id, turn_start, turn_end, summary_text)
+
+            # Generate summary with turn range context
+            summary_text = generate_summary(oldest_messages, turn_start, turn_end)
+
+            # Save summary
+            summary_id = add_summary(turn_start, turn_end, summary_text)
+
+            # Archive messages to extended history
             summary_entry = {
                 "role": "system",
                 "content": f"[SUMMARY of turns {turn_start}-{turn_end}]\n{summary_text}",
                 "thinking": None,
                 "timestamp": datetime.now(PT).strftime("%Y-%m-%d %H:%M:%S")
             }
-            archive_messages(user_id, oldest_messages + [summary_entry], summary_id)
+            archive_messages(oldest_messages + [summary_entry], summary_id)
+
+            # Delete from active messages
             ids_to_delete = [msg["id"] for msg in oldest_messages]
             delete_messages_by_ids(ids_to_delete)
+
             return True
     return False
 
