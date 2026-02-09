@@ -503,3 +503,4 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
         st.session_state.display_messages.append(assistant_msg)
 
         st.write(clean_response)
+        
