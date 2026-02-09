@@ -356,21 +356,21 @@ def check_and_summarize(user_id: str):
 def process_note_tags(response_text: str) -> str:
     import re
 
-    active_match = re.search(r'\*?)\]', response_text)
+    active_match = re.search(r'\[ACTIVE NOTE:\s*([\s\S]*?)\]', response_text)
     if active_match:
         content = active_match.group(1).strip()
         if len(content) <= 2500:
             set_note(user_id, "active", content)
         response_text = response_text.replace(active_match.group(0), "").strip()
 
-    ongoing_match = re.search(r'\*?)\]', response_text)
+    ongoing_match = re.search(r'\[ONGOING NOTE:\s*([\s\S]*?)\]', response_text)
     if ongoing_match:
         content = ongoing_match.group(1).strip()
         if len(content) <= 5000:
             set_note(user_id, "ongoing", content)
         response_text = response_text.replace(ongoing_match.group(0), "").strip()
 
-    permanent_match = re.search(r'\*?)\]', response_text)
+    permanent_match = re.search(r'\[PERMANENT NOTE:\s*([\s\S]*?)\]', response_text)
     if permanent_match:
         content = permanent_match.group(1).strip()
         if len(content) <= 10000:
@@ -503,4 +503,3 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
         st.session_state.display_messages.append(assistant_msg)
 
         st.write(clean_response)
-        
