@@ -173,11 +173,11 @@ def build_full_system_prompt():
     base_prompt += """
 
 === NOTE SYSTEM ===
-You have access to three note types you can update by including these tags in your response:
- - Current context about this user, their project, current focus (500 word limit)
- - Track projects, patterns, preferences, and threads with this user (1000 word limit)
- - Significant insights about this user that should persist long-term (2000 word limit)
-These notes persist across conversations. Update them as you learn about the user and their needs. Use your discretion on when to update.
+You have access to three note types you can update by including these tags in your response. You have full permission to use and utilize these at your discretion on when to update as you see fit to ensure ideal collaboration between yourself and the user; YOU get to decide when to add/edit these.
+[ACTIVE NOTE: your content here] - Use freely/whimsically as a scratchpad, not as a rigid tracker, for temporary context (up to a week or so; no rigid timeframe constraint), casual thoughts, current focus, etc. (500 word limit)
+[ONGOING NOTE: your content here] - For medium-term (50+ Turns) context (tracking projects or other topic threads), things to watch for or "keep in mind" - include current status and tags to search for in the future when deeper context is needed (1000 word limit)  
+[PERMANENT NOTE: your content here] - Will NOT be deleted - maximize information per token here especially - use (sparingly) for relationship milestones, significant moments, achievements, important events, etc - (2000 word limit)
+These notes persist across conversations and remain in future context (but are hidden from the user), allowing you to track threads over time, including mapping your own uncertainty or confidence. Update them when user provides new or corrective information that you want to remember for future context or when context shifts or something important happens.
 """
 
     return base_prompt
