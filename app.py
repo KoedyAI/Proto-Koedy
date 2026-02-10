@@ -434,12 +434,12 @@ for msg in st.session_state.display_messages:
         with st.chat_message("user", avatar="chat_logo.png"):
             st.write(msg["content"])
             if msg.get("timestamp"):
-                st.caption(msg["timestamp"])
+                st.markdown(f'<p style="text-align: right; font-size: 0.8em; color: gray;">{msg["timestamp"]}</p>', unsafe_allow_html=True)
     else:
         with st.chat_message("assistant", avatar="logo.png"):
             st.write(msg["content"])
             if msg.get("timestamp"):
-                st.caption(msg["timestamp"])
+                st.markdown(f'<p style="text-align: right; font-size: 0.8em; color: gray;">{msg["timestamp"]}</p>', unsafe_allow_html=True)
 
 # Chat input
 if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
