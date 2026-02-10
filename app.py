@@ -105,7 +105,6 @@ ACCESS_CODES = json.loads(st.secrets["ACCESS_CODES"])
 
 # === ACCESS GATE ===
 st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
-set_background("link_photo.png")
 
 def check_auth():
     params = st.query_params
@@ -131,6 +130,9 @@ if not check_auth():
         else:
             st.error("Invalid access code.")
     st.stop()
+
+
+set_background("link_photo.png")
 
 # === AUTHENTICATED FROM HERE ===
 user_id = st.session_state.user_id
