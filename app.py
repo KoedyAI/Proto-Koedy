@@ -440,7 +440,11 @@ for msg in st.session_state.display_messages:
                 st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{msg["timestamp"]}</p>', unsafe_allow_html=True)
 
 # Chat input
-if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
+user_messages = [m for m in st.session_state.display_messages if m["role"] == "user"]
+
+if st.session_state.get("user_id") == "Anthropic" and len(user_messages) >= 10:
+    st.chat_input("I bet you wanted to send an 11th 😏", disabled=True)
+elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
     turn_number = increment_turn_counter(user_id)
     user_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
     turn_display.write(f"Turn: {turn_number}")
