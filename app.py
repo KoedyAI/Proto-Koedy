@@ -104,6 +104,14 @@ client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 # Access codes — add friends here as: "their_code": "their_name"
 ACCESS_CODES = json.loads(st.secrets["ACCESS_CODES"])
 
+def scroll_to_bottom():
+    components.html(
+        """<script>
+        window.parent.document.querySelector('section.main').scrollTo(0, 99999);
+        </script>""",
+        height=0
+    )
+
 # === ACCESS GATE ===
 def check_auth():
     params = st.query_params
@@ -132,14 +140,6 @@ if not check_auth():
 
 # === AUTHENTICATED FROM HERE ===
 user_id = st.session_state.user_id
-
-def scroll_to_bottom():
-    components.html(
-        """<script>
-        window.parent.document.querySelector('section.main').scrollTo(0, 99999);
-        </script>""",
-        height=0
-    )
 
 # Load system prompt
 @st.cache_data
