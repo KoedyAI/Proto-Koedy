@@ -91,7 +91,7 @@ def set_background(image_file, opacity=0.50):
     }}
     </style>
     """, unsafe_allow_html=True)
-
+st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
 set_background("link_photo.png")
 # Opus pricing per token (dollars/tokens)
 INPUT_COST_PER_TOKEN = 5.00 / 1_000_000
@@ -104,8 +104,6 @@ client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 ACCESS_CODES = json.loads(st.secrets["ACCESS_CODES"])
 
 # === ACCESS GATE ===
-st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
-
 def check_auth():
     params = st.query_params
     saved_code = params.get("code")
