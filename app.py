@@ -30,8 +30,6 @@ from database import (
     get_spending_limit
 )
 import base64
-
-set_background("link_photo.png")
 st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
 
 def set_background(image_file, opacity=0.50):
@@ -94,7 +92,7 @@ def set_background(image_file, opacity=0.50):
     }}
     </style>
     """, unsafe_allow_html=True)
-
+set_background("link_photo.png")
 # Opus pricing per token (dollars/tokens)
 INPUT_COST_PER_TOKEN = 5.00 / 1_000_000
 OUTPUT_COST_PER_TOKEN = 25.00 / 1_000_000
