@@ -85,6 +85,9 @@ def set_background(image_file, opacity=0.50):
     .stSpinner > div {{
     font-style: italic;
     }}
+    .stChatMessage .stCaption {{
+    text-align: right;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
