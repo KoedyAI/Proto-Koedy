@@ -92,7 +92,7 @@ def set_background(image_file, opacity=0.50):
     </style>
     """, unsafe_allow_html=True)
 
-
+set_background("link_photo.png")
 # Opus pricing per token (dollars/tokens)
 INPUT_COST_PER_TOKEN = 5.00 / 1_000_000
 OUTPUT_COST_PER_TOKEN = 25.00 / 1_000_000
@@ -130,9 +130,6 @@ if not check_auth():
         else:
             st.error("Invalid access code.")
     st.stop()
-
-
-set_background("link_photo.png")
 
 # === AUTHENTICATED FROM HERE ===
 user_id = st.session_state.user_id
