@@ -82,6 +82,9 @@ def set_background(image_file, opacity=0.50):
             color: #E0F2FE !important;
         }}
     }}
+    .stSpinner > div {{
+    font-style: italic;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -427,9 +430,13 @@ for msg in st.session_state.display_messages:
     if msg["role"] == "user":
         with st.chat_message("user", avatar="chat_logo.png"):
             st.write(msg["content"])
+            if msg.get("timestamp"):
+                st.caption(msg["timestamp"])
     else:
         with st.chat_message("assistant", avatar="logo.png"):
             st.write(msg["content"])
+            if msg.get("timestamp"):
+                st.caption(msg["timestamp"])
 
 # Chat input
 if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
@@ -469,7 +476,7 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
     api_messages = format_messages_for_api(db_messages)
 
     with st.chat_message("assistant", avatar="logo.png"):
-        with st.spinner("Thinking..."):
+        with st.spinner("Koedy is typing..."):
             response = client.messages.create(
                 model="claude-opus-4-6",
                 max_tokens=16000,
