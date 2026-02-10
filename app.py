@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 from datetime import datetime, timedelta, timezone
 PT = timezone(timedelta(hours=-8))
 from anthropic import Anthropic
@@ -129,20 +128,6 @@ if not check_auth():
         else:
             st.error("Invalid access code.")
     st.stop()
-
-def scroll_to_bottom():
-    components.html(
-        """<script>
-        const targets = [
-            window.parent.document.querySelector('[data-testid="stMain"]'),
-            window.parent.document.querySelector('[data-testid="stMainBlockContainer"]'),
-            window.parent.document.querySelector('section.main'),
-            window.parent.document.documentElement
-        ];
-        targets.forEach(el => { if (el) el.scrollTo(0, 99999); });
-        </script>""",
-        height=0
-    )
 
 # === AUTHENTICATED FROM HERE ===
 user_id = st.session_state.user_id
@@ -493,8 +478,6 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
 
     with st.chat_message("assistant", avatar="logo.png"):
         with st.spinner("Koedy is typing..."):
-            scroll_to_bottom()
-
             response = client.messages.create(
                 model="claude-opus-4-6",
                 max_tokens=16000,
@@ -537,4 +520,4 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
         st.session_state.display_messages.append(assistant_msg)
 
         st.write(clean_response)
-        scroll_to_bottom()
+        st.rerun()
