@@ -449,6 +449,15 @@ if user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
     with st.chat_message("user", avatar="chat_logo.png"):
         st.write(user_input)
 
+    # Check user spending limit
+    usage = get_user_total_usage(user_id)
+    spending_limit = get_spending_limit(user_id)  # dollars per user
+
+    if usage["total_cost"] >= spending_limit:
+        with st.chat_message("assistant", avatar="logo.png"):
+            st.write("You've reached your current message limit! Reach out to Koyote to continue. 🐾")
+        st.stop()
+
     # Check if summarization needed
     with st.spinner("Getting to know you better..."):
         summarized = check_and_summarize(user_id)

@@ -274,3 +274,19 @@ def export_all_data(user_id: str) -> Dict[str, Any]:
         "exported_at": datetime.now().isoformat()
     }
     
+# === Spending Locks ===
+def get_spending_limit(user_id: str) -> float:
+    result = db().table("koedy_metadata").select("value").eq("key", f"spending_limit_{user_id}").execute()
+    if result.data:
+        return float(result.data[0]["value"])
+    return 10.00  # default limit
+
+def set_spending_limit(user_id: str, limit: float):
+    result = db().table("koedy_metadata").update({
+        "value": str(limit)
+    }).eq("key", f"spending_limit_{user_id}").execute()
+    if not result.data:
+        db().table("koedy_metadata").insert({
+            "key": f"spending_limit_{user_id}",
+            "value": str(limit)
+        }).execute()
