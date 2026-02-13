@@ -481,7 +481,7 @@ elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"
 
     full_system_prompt = build_full_system_prompt()
     db_messages = get_messages(user_id, limit=context_depth * 2)
-        api_messages = format_messages_for_api(db_messages, get_turn_counter(user_id))
+    api_messages = format_messages_for_api(db_messages, get_turn_counter(user_id))
 
     with st.chat_message("assistant", avatar="logo.png"):
         with st.spinner("Koedy is typing..."):
