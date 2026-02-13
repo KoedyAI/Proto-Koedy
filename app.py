@@ -630,8 +630,8 @@ with st.sidebar:
         else:
             st.caption(f"📎 {uploaded_file.name} sent ✓")
 
-    st.caption("Koedy can only see files while attached", help="Remove file(s) when you're done — adds cost each turn attached")
-    
+    st.caption("Koedy only sees files while attached", help="Remove file(s) when you're done — adds cost each turn attached")
+
     st.divider()
 
     st.caption("Search history:")
