@@ -389,6 +389,72 @@ def process_note_tags(response_text: str) -> str:
 
     return response_text
 
+def call_koedy(user_id, context_depth, is_resend=False):
+    """Make API call and handle response. Extracted so resend can reuse it."""
+    # Check spending limit
+    usage_data = get_user_total_usage(user_id)
+    spending_limit = get_spending_limit(user_id)
+    if usage_data["total_cost"] >= spending_limit:
+        with st.chat_message("assistant", avatar="logo.png"):
+            st.write("You've reached your current message limit! Reach out to Koyote to continue. 🐾")
+        return
+
+    # Summarize if needed
+    with st.spinner("Getting to know you better..."):
+        summarized = check_and_summarize(user_id)
+    if summarized:
+        st.toast("✨ Memory updated")
+
+    full_system_prompt = build_full_system_prompt()
+    db_messages = get_messages(user_id, limit=context_depth * 2)
+    api_messages = format_messages_for_api(db_messages, get_turn_counter(user_id))
+
+    with st.chat_message("assistant", avatar="logo.png"):
+        try:
+            with st.spinner("Koedy is ruminating..."):
+                response = client.messages.create(
+                    model="claude-opus-4-6",
+                    max_tokens=16000,
+                    thinking={"type": "enabled", "budget_tokens": 10000},
+                    system=full_system_prompt,
+                    messages=api_messages
+                )
+
+            response_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
+
+            thinking_text = ""
+            response_text = ""
+            for block in response.content:
+                if block.type == "thinking":
+                    thinking_text = block.thinking
+                elif block.type == "text":
+                    response_text = block.text
+
+            u = response.usage
+            in_cost = u.input_tokens * INPUT_COST_PER_TOKEN
+            out_cost = u.output_tokens * OUTPUT_COST_PER_TOKEN
+            log_token_usage(user_id, "message", u.input_tokens, u.output_tokens, in_cost, out_cost, in_cost + out_cost)
+
+            clean_response = process_note_tags(response_text)
+            add_message(user_id, "assistant", clean_response, thinking_text, response_timestamp)
+
+            st.session_state.display_messages.append({
+                "role": "assistant",
+                "content": clean_response,
+                "thinking": thinking_text,
+                "timestamp": response_timestamp
+            })
+
+            st.write(clean_response)
+
+        except Exception:
+            st.warning("Something went wrong — try sending your message again. 🐾")
+            if not is_resend and st.session_state.display_messages and st.session_state.display_messages[-1]["role"] == "user":
+                st.session_state.display_messages.pop()
+                recent = get_messages(user_id, limit=1)
+                if recent and recent[0]["role"] == "user":
+                    delete_messages_by_ids([recent[0]["id"]])
+
 # === STREAMLIT UI ===
 
 st.title("Koedy")
@@ -442,6 +508,34 @@ for msg in st.session_state.display_messages:
             if msg.get("timestamp"):
                 st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{msg["timestamp"]}</p>', unsafe_allow_html=True)
 
+# Action buttons
+if st.session_state.display_messages:
+    btn1, btn2, spacer = st.columns([1, 1, 8])
+    with btn1:
+        if st.button("↻ Resend"):
+            if st.session_state.display_messages[-1]["role"] == "assistant":
+                st.session_state.display_messages.pop()
+                recent = get_messages(user_id, limit=1)
+                if recent and recent[0]["role"] == "assistant":
+                    delete_messages_by_ids([recent[0]["id"]])
+            st.session_state.needs_resend = True
+            st.rerun()
+    with btn2:
+        if st.button("✕ Delete"):
+            recent = get_messages(user_id, limit=2)
+            if recent:
+                delete_messages_by_ids([m["id"] for m in recent])
+                for _ in range(min(2, len(st.session_state.display_messages))):
+                    if st.session_state.display_messages:
+                        st.session_state.display_messages.pop()
+            st.rerun()
+
+# Handle resend
+if st.session_state.get("needs_resend"):
+    st.session_state.needs_resend = False
+    call_koedy(user_id, context_depth, is_resend=True)
+    st.stop()
+
 # Chat input
 user_messages = [m for m in st.session_state.display_messages if m["role"] == "user"]
 
@@ -454,87 +548,13 @@ elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"
 
     add_message(user_id, "user", user_input, None, user_timestamp)
 
-    user_msg = {
+    st.session_state.display_messages.append({
         "role": "user",
         "content": user_input,
         "timestamp": user_timestamp
-    }
-    st.session_state.display_messages.append(user_msg)
+    })
 
     with st.chat_message("user", avatar="chat_logo.png"):
         st.write(user_input)
 
-    # Check user spending limit
-    usage = get_user_total_usage(user_id)
-    spending_limit = get_spending_limit(user_id)  # dollars per user
-
-    if usage["total_cost"] >= spending_limit:
-        with st.chat_message("assistant", avatar="logo.png"):
-            st.write("You've reached your current message limit! Reach out to Koyote to continue. 🐾")
-        st.stop()
-
-    # Check if summarization needed
-    with st.spinner("Getting to know you better..."):
-        summarized = check_and_summarize(user_id)
-    if summarized:
-        st.toast("✨ Memory updated")
-
-    full_system_prompt = build_full_system_prompt()
-    db_messages = get_messages(user_id, limit=context_depth * 2)
-    api_messages = format_messages_for_api(db_messages, get_turn_counter(user_id))
-
-    with st.chat_message("assistant", avatar="logo.png"):
-        try:
-            with st.spinner("Koedy is ruminating..."):
-                response = client.messages.create(
-                    model="claude-opus-4-6",
-                    max_tokens=16000,
-                    thinking={
-                        "type": "enabled",
-                        "budget_tokens": 10000
-                    },
-                    system=full_system_prompt,
-                    messages=api_messages
-                )
-
-            response_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
-
-            thinking_text = ""
-            response_text = ""
-            for block in response.content:
-                if block.type == "thinking":
-                    thinking_text = block.thinking
-                elif block.type == "text":
-                    response_text = block.text
-
-            # Log token usage
-            usage = response.usage
-            in_tokens = usage.input_tokens
-            out_tokens = usage.output_tokens
-            in_cost = in_tokens * INPUT_COST_PER_TOKEN
-            out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
-            log_token_usage(user_id, "message", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
-
-            clean_response = process_note_tags(response_text)
-
-            add_message(user_id, "assistant", clean_response, thinking_text, response_timestamp)
-
-            assistant_msg = {
-                "role": "assistant",
-                "content": clean_response,
-                "thinking": thinking_text,
-                "timestamp": response_timestamp
-            }
-            st.session_state.display_messages.append(assistant_msg)
-
-            st.write(clean_response)
-
-        except Exception:
-            st.warning("Something went wrong — try sending your message again. 🐾")
-            # Remove the user message that didn't get a response
-            if st.session_state.display_messages and st.session_state.display_messages[-1]["role"] == "user":
-                failed_msg = st.session_state.display_messages.pop()
-                # Clean it from DB too
-                recent = get_messages(user_id, limit=1)
-                if recent and recent[0]["role"] == "user":
-                    delete_messages_by_ids([recent[0]["id"]])
+    call_koedy(user_id, context_depth)
