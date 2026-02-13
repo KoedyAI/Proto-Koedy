@@ -103,6 +103,17 @@ def set_background(image_file, opacity=0.50):
         background-color: rgba(8, 145, 178, 0.3) !important;
         border-color: #0891B2 !important;
     }}
+        /* Mobile padding */
+    @media (max-width: 768px) {{
+        .main .block-container {{
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }}
+        [data-testid="stChatMessage"] {{
+            padding: 6px 8px;
+            margin-bottom: 6px;
+        }}
+    }}
     </style>
     """, unsafe_allow_html=True)
 set_background("link_photo.png")
@@ -459,6 +470,7 @@ def call_koedy(user_id, context_depth, is_resend=False):
             })
 
             st.write(clean_response)
+            st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{response_timestamp}</p>', unsafe_allow_html=True)
 
         except Exception:
             st.warning("Something went wrong — try sending your message again. 🐾")
@@ -572,5 +584,6 @@ elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"
 
     with st.chat_message("user", avatar="chat_logo.png"):
         st.write(user_input)
+        st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{user_timestamp}</p>', unsafe_allow_html=True)
 
     call_koedy(user_id, context_depth)
