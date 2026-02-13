@@ -589,22 +589,9 @@ with st.sidebar:
                         st.session_state.display_messages.pop()
                 decrement_turn_counter(user_id)
             st.rerun()
-
+            
     st.divider()
 
-    st.caption("Search history:")
-    search_query = st.text_input("Search", label_visibility="collapsed", placeholder="Search past conversations...")
-    if search_query:
-        results = search_extended_history(user_id, search_query)
-        if results:
-            for r in results:
-                role = "You" if r["role"] == "user" else "Koedy"
-                preview = r["content"][:200].replace("\n", " ")
-                st.markdown(f"**{role}:** {preview}...")
-        else:
-            st.caption("Nothing found — try different terms 🐾")
-        
-        st.divider()
     st.caption("Attach file:")
     uploaded_file = st.file_uploader(
         "Upload",
@@ -643,6 +630,20 @@ with st.sidebar:
         else:
             st.caption(f"📎 {uploaded_file.name} sent ✓")
 
+    st.divider()
+
+    st.caption("Search history:")
+    search_query = st.text_input("Search", label_visibility="collapsed", placeholder="Search past conversations...")
+    if search_query:
+        results = search_extended_history(user_id, search_query)
+        if results:
+            for r in results:
+                role = "You" if r["role"] == "user" else "Koedy"
+                preview = r["content"][:200].replace("\n", " ")
+                st.markdown(f"**{role}:** {preview}...")
+        else:
+            st.caption("Nothing found — try different terms 🐾")
+        
     st.divider()
 
     st.header("Export")
