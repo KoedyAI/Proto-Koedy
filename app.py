@@ -106,7 +106,7 @@ def set_background(image_file, opacity=0.50):
         /* Mobile padding */
     @media (max-width: 768px) {{
         .stApp {{
-            background-position: center 120px !important;
+            background-position: center 100px !important;
         }}
     }}
     @media (max-width: 768px) {{
