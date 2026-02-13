@@ -90,6 +90,18 @@ def set_background(image_file, opacity=0.50):
     .stChatMessage caption, .stChatMessage .stCaption p {{
     text-align: right;
     }}
+        /* Sidebar buttons match theme */
+    [data-testid="stSidebar"] button {{
+        background-color: rgba(22, 32, 50, 0.7) !important;
+        color: #badeff !important;
+        border: 1px solid #2A3F5F !important;
+        font-size: 0.85em !important;
+        padding: 4px 8px !important;
+    }}
+    [data-testid="stSidebar"] button:hover {{
+        background-color: rgba(8, 145, 178, 0.3) !important;
+        border-color: #0891B2 !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 set_background("link_photo.png")
@@ -485,6 +497,28 @@ with st.sidebar:
 
     st.divider()
 
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("↻ Resend", use_container_width=True):
+            if st.session_state.display_messages and st.session_state.display_messages[-1]["role"] == "assistant":
+                st.session_state.display_messages.pop()
+                recent = get_messages(user_id, limit=1)
+                if recent and recent[0]["role"] == "assistant":
+                    delete_messages_by_ids([recent[0]["id"]])
+            st.session_state.needs_resend = True
+            st.rerun()
+    with col2:
+        if st.button("✕ Delete", use_container_width=True):
+            recent = get_messages(user_id, limit=2)
+            if recent:
+                delete_messages_by_ids([m["id"] for m in recent])
+                for _ in range(min(2, len(st.session_state.display_messages))):
+                    if st.session_state.display_messages:
+                        st.session_state.display_messages.pop()
+            st.rerun()
+
+    st.divider()
+
     st.header("Export")
     if st.button("Export Data"):
         data = export_all_data(user_id)
@@ -508,34 +542,13 @@ for msg in st.session_state.display_messages:
             if msg.get("timestamp"):
                 st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{msg["timestamp"]}</p>', unsafe_allow_html=True)
 
-# Action buttons
-if st.session_state.display_messages:
-    btn1, btn2, spacer = st.columns([1, 1, 8])
-    with btn1:
-        if st.button("↻ Resend"):
-            if st.session_state.display_messages[-1]["role"] == "assistant":
-                st.session_state.display_messages.pop()
-                recent = get_messages(user_id, limit=1)
-                if recent and recent[0]["role"] == "assistant":
-                    delete_messages_by_ids([recent[0]["id"]])
-            st.session_state.needs_resend = True
-            st.rerun()
-    with btn2:
-        if st.button("✕ Delete"):
-            recent = get_messages(user_id, limit=2)
-            if recent:
-                delete_messages_by_ids([m["id"] for m in recent])
-                for _ in range(min(2, len(st.session_state.display_messages))):
-                    if st.session_state.display_messages:
-                        st.session_state.display_messages.pop()
-            st.rerun()
+# Action buttons are in sidebar
 
 # Handle resend
 if st.session_state.get("needs_resend"):
     st.session_state.needs_resend = False
     call_koedy(user_id, context_depth, is_resend=True)
-    st.stop()
-
+    st.rerun()
 # Chat input
 user_messages = [m for m in st.session_state.display_messages if m["role"] == "user"]
 
