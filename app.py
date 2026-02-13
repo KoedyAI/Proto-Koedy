@@ -2,6 +2,8 @@ import streamlit as st
 from datetime import datetime, timedelta, timezone
 PT = timezone(timedelta(hours=-8))
 from anthropic import Anthropic
+import pdfplumber
+from io import BytesIO
 import json
 import re
 import requests
@@ -470,6 +472,25 @@ def call_koedy(user_id, context_depth, is_resend=False):
     if api_messages and api_messages[-1]["role"] == "user":
         api_messages[-1]["content"] = enrich_message_with_urls(api_messages[-1]["content"])
 
+    # Handle pending file attachment
+    attachment = st.session_state.get("pending_attachment")
+    if attachment and api_messages and api_messages[-1]["role"] == "user":
+        if attachment["type"] == "image":
+            text_content = api_messages[-1]["content"]
+            api_messages[-1]["content"] = [
+                {"type": "image", "source": {
+                    "type": "base64",
+                    "media_type": attachment["media_type"],
+                    "data": attachment["base64"]
+                }},
+                {"type": "text", "text": text_content}
+            ]
+        elif attachment["type"] == "pdf":
+            api_messages[-1]["content"] += f"\n\n[Content from {attachment['filename']}]:\n{attachment['text']}"
+
+        st.session_state.last_sent_file = attachment["file_key"]
+        st.session_state.pop("pending_attachment", None)
+    
     with st.chat_message("assistant", avatar="logo.png"):
         try:
             with st.spinner("Koedy is ruminating..."):
@@ -582,7 +603,46 @@ with st.sidebar:
                 st.markdown(f"**{role}:** {preview}...")
         else:
             st.caption("Nothing found — try different terms 🐾")
-            
+        
+        st.divider()
+    st.caption("Attach file:")
+    uploaded_file = st.file_uploader(
+        "Upload",
+        type=["png", "jpg", "jpeg", "gif", "webp", "pdf"],
+        label_visibility="collapsed"
+    )
+    if uploaded_file:
+        file_key = f"{uploaded_file.name}_{uploaded_file.size}"
+        if file_key != st.session_state.get("last_sent_file"):
+            file_bytes = uploaded_file.read()
+            file_type = uploaded_file.type
+
+            if file_type == "application/pdf":
+                try:
+                    with pdfplumber.open(BytesIO(file_bytes)) as pdf:
+                        text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+                    st.session_state.pending_attachment = {
+                        "type": "pdf",
+                        "text": text[:10000],
+                        "filename": uploaded_file.name,
+                        "file_key": file_key
+                    }
+                    st.caption(f"📎 {uploaded_file.name} ready")
+                except Exception:
+                    st.caption("⚠️ Couldn't read PDF")
+            else:
+                b64 = base64.b64encode(file_bytes).decode()
+                st.session_state.pending_attachment = {
+                    "type": "image",
+                    "base64": b64,
+                    "media_type": file_type,
+                    "filename": uploaded_file.name,
+                    "file_key": file_key
+                }
+                st.caption(f"📎 {uploaded_file.name} ready")
+        else:
+            st.caption(f"📎 {uploaded_file.name} sent ✓")
+
     st.divider()
 
     st.header("Export")
