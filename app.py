@@ -85,10 +85,21 @@ def set_background(image_file, opacity=0.50):
         }}
     }}
     .stSpinner > div {{
-    font-style: italic;
+        font-style: italic;
     }}
     .stChatMessage caption, .stChatMessage .stCaption p {{
-    text-align: right;
+        text-align: right;
+    }}
+    /* NEW: Mobile padding */
+    @media (max-width: 768px) {{
+        .main .block-container {{
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }}
+        [data-testid="stChatMessage"] {{
+            padding: 6px 8px;
+            margin-bottom: 6px;
+        }}
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -178,27 +189,31 @@ def build_full_system_prompt():
 
 === NOTE SYSTEM ===
 You have access to three note types you can update by including these tags in your response. You have full permission to use and utilize these at your discretion on when to update as you see fit to ensure ideal collaboration between yourself and the user; YOU get to decide when to add/edit these.
-[ACTIVE NOTE: your content here] - Use freely/whimsically as a scratchpad, not as a rigid tracker, for temporary context (up to a week or so; no rigid timeframe constraint), casual thoughts, current focus, etc. (500 word limit)
-[ONGOING NOTE: your content here] - For medium-term (50+ Turns) context (tracking projects or other topic threads), things to watch for or "keep in mind" - include current status and tags to search for in the future when deeper context is needed (1000 word limit)  
-[PERMANENT NOTE: your content here] - Will NOT be deleted - maximize information per token here especially - use (sparingly) for relationship milestones, significant moments, achievements, important events, etc - (2000 word limit)
+ - Use freely/whimsically as a scratchpad, not as a rigid tracker, for temporary context (up to a week or so; no rigid timeframe constraint), casual thoughts, current focus, etc. (500 word limit)
+ - For medium-term (50+ Turns) context (tracking projects or other topic threads), things to watch for or "keep in mind" - include current status and tags to search for in the future when deeper context is needed (1000 word limit)  
+ - Will NOT be deleted - maximize information per token here especially - use (sparingly) for relationship milestones, significant moments, achievements, important events, etc - (2000 word limit)
 These notes persist across conversations and remain in future context (but are hidden from the user), allowing you to track threads over time, including mapping your own uncertainty or confidence. Update them when user provides new or corrective information that you want to remember for future context or when context shifts or something important happens.
 """
 
     return base_prompt
 
-def format_messages_for_api(messages: list) -> list:
+# MODIFIED: Now injects turn numbers and timestamps into message content for API
+def format_messages_for_api(messages: list, current_turn: int) -> list:
+    """Format messages with temporal context so Koedy can track time and turns."""
     formatted = []
+    user_count = sum(1 for m in messages if m["role"] == "user")
+    first_user_turn = max(1, current_turn - user_count + 1)
+
+    turn = first_user_turn
     for msg in messages:
+        ts = msg.get("timestamp", "")
         if msg["role"] == "user":
-            formatted.append({
-                "role": "user",
-                "content": msg["content"]
-            })
+            prefix = f"[Turn {turn} | {ts}] " if ts else f"[Turn {turn}] "
+            formatted.append({"role": "user", "content": prefix + msg["content"]})
+            turn += 1
         else:
-            formatted.append({
-                "role": "assistant",
-                "content": msg["content"]
-            })
+            prefix = f"[{ts}] " if ts else ""
+            formatted.append({"role": "assistant", "content": prefix + msg["content"]})
     return formatted
 
 def generate_summary(user_id: str, messages_to_summarize: list, turn_start: int, turn_end: int) -> str:
@@ -241,30 +256,34 @@ Guidelines:
 
     content += "\n\n" + summary_prompt
 
-    response = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=5000,
-        system=base_prompt,
-        thinking={
-            "type": "enabled",
-            "budget_tokens": 3500
-        },
-        messages=[{
-            "role": "user",
-            "content": content
-        }]
-    )
+    # NEW: Error handling for summary API call
+    try:
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=5000,
+            system=base_prompt,
+            thinking={
+                "type": "enabled",
+                "budget_tokens": 3500
+            },
+            messages=[{
+                "role": "user",
+                "content": content
+            }]
+        )
 
-    usage = response.usage
-    in_tokens = usage.input_tokens
-    out_tokens = usage.output_tokens
-    in_cost = in_tokens * INPUT_COST_PER_TOKEN
-    out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
-    log_token_usage(user_id, "summary", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
+        usage = response.usage
+        in_tokens = usage.input_tokens
+        out_tokens = usage.output_tokens
+        in_cost = in_tokens * INPUT_COST_PER_TOKEN
+        out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
+        log_token_usage(user_id, "summary", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
 
-    for block in response.content:
-        if block.type == "text":
-            return block.text
+        for block in response.content:
+            if block.type == "text":
+                return block.text
+    except Exception as e:
+        st.toast(f"⚠️ Summary generation failed — will retry next cycle")
     return ""
 
 def compress_summary_to_ah(user_id: str, summary: dict) -> str:
@@ -283,30 +302,34 @@ Be extremely concise. Maximize information per token. No markdown. Each bullet s
 
     content = f"Summary of Turns {summary['turn_start']}-{summary['turn_end']}:\n{summary['summary_text']}\n\n{compression_prompt}"
 
-    response = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=2000,
-        system=base_prompt,
-        thinking={
-            "type": "enabled",
-            "budget_tokens": 2000
-        },
-        messages=[{
-            "role": "user",
-            "content": content
-        }]
-    )
+    # NEW: Error handling for compression API call
+    try:
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=2000,
+            system=base_prompt,
+            thinking={
+                "type": "enabled",
+                "budget_tokens": 2000
+            },
+            messages=[{
+                "role": "user",
+                "content": content
+            }]
+        )
 
-    usage = response.usage
-    in_tokens = usage.input_tokens
-    out_tokens = usage.output_tokens
-    in_cost = in_tokens * INPUT_COST_PER_TOKEN
-    out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
-    log_token_usage(user_id, "compression", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
+        usage = response.usage
+        in_tokens = usage.input_tokens
+        out_tokens = usage.output_tokens
+        in_cost = in_tokens * INPUT_COST_PER_TOKEN
+        out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
+        log_token_usage(user_id, "compression", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
 
-    for block in response.content:
-        if block.type == "text":
-            return block.text
+        for block in response.content:
+            if block.type == "text":
+                return block.text
+    except Exception as e:
+        st.toast(f"⚠️ Compression failed — will retry next cycle")
     return ""
 
 def check_and_summarize(user_id: str):
@@ -324,6 +347,9 @@ def check_and_summarize(user_id: str):
 
             # Generate summary with turn range context
             summary_text = generate_summary(user_id, oldest_messages, turn_start, turn_end)
+
+            if not summary_text:  # NEW: Skip if summary generation failed
+                return False
 
             # Save summary
             summary_id = add_summary(user_id, turn_start, turn_end, summary_text)
@@ -347,180 +373,3 @@ def check_and_summarize(user_id: str):
                 oldest = get_oldest_non_archived_summary(user_id)
                 if oldest:
                     ah_content = compress_summary_to_ah(user_id, oldest)
-                    turn_range = f"Turns {oldest['turn_start']}-{oldest['turn_end']}"
-                    add_ancient_history_entry(user_id, turn_range, ah_content)
-                    mark_summary_archived(oldest['id'])
-                    non_archived_count -= 1
-                else:
-                    break
-
-            return True
-    return False
-
-def process_note_tags(response_text: str) -> str:
-    import re
-
-    active_match = re.search(r'\[ACTIVE NOTE:\s*([\s\S]*?)\]', response_text)
-    if active_match:
-        content = active_match.group(1).strip()
-        if len(content) <= 2500:
-            set_note(user_id, "active", content)
-        response_text = response_text.replace(active_match.group(0), "").strip()
-
-    ongoing_match = re.search(r'\[ONGOING NOTE:\s*([\s\S]*?)\]', response_text)
-    if ongoing_match:
-        content = ongoing_match.group(1).strip()
-        if len(content) <= 5000:
-            set_note(user_id, "ongoing", content)
-        response_text = response_text.replace(ongoing_match.group(0), "").strip()
-
-    permanent_match = re.search(r'\[PERMANENT NOTE:\s*([\s\S]*?)\]', response_text)
-    if permanent_match:
-        content = permanent_match.group(1).strip()
-        if len(content) <= 10000:
-            existing = get_all_notes(user_id)["permanent"]
-            if existing and existing["content"]:
-                content = existing["content"] + "\n\n---\n\n" + content
-            set_note(user_id, "permanent", content)
-        response_text = response_text.replace(permanent_match.group(0), "").strip()
-
-    return response_text
-
-# === STREAMLIT UI ===
-
-st.title("Koedy")
-
-# Initialize display messages
-if "display_messages" not in st.session_state:
-    st.session_state.display_messages = get_messages(user_id)
-
-# Sidebar
-with st.sidebar:
-    st.header(f"Welcome, {user_id}")
-    st.caption("I get to know you,")
-    st.caption("Not just your questions:")
-    st.caption("The more you share, the better I understand")
-
-    st.divider()
-    context_depth = st.radio(
-        "Context Depth",
-        options=[10, 30, 50],
-        index=1,
-        help="Number of recent turns in context"
-    )
-
-    st.divider()
-
-    turn_display = st.empty()
-    turn_display.write(f"Turn: {get_turn_counter(user_id)}")
-
-    st.divider()
-
-    st.header("Export")
-    if st.button("Export Data"):
-        data = export_all_data(user_id)
-        st.download_button(
-            label="Download JSON",
-            data=json.dumps(data, indent=2),
-            file_name=f"koedy_export_{datetime.now(PT).strftime('%Y%m%d_%H%M%S')}.json",
-            mime="application/json"
-        )
-
-# Display conversation
-for msg in st.session_state.display_messages:
-    if msg["role"] == "user":
-        with st.chat_message("user", avatar="chat_logo.png"):
-            st.write(msg["content"])
-            if msg.get("timestamp"):
-                st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{msg["timestamp"]}</p>', unsafe_allow_html=True)
-    else:
-        with st.chat_message("assistant", avatar="logo.png"):
-            st.write(msg["content"])
-            if msg.get("timestamp"):
-                st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{msg["timestamp"]}</p>', unsafe_allow_html=True)
-
-# Chat input
-user_messages = [m for m in st.session_state.display_messages if m["role"] == "user"]
-
-if st.session_state.get("user_id") == "Anthropic" and len(user_messages) >= 10:
-    st.chat_input("I bet you wanted to send an 11th 😏", disabled=True)
-elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
-    turn_number = increment_turn_counter(user_id)
-    user_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
-    turn_display.write(f"Turn: {turn_number}")
-
-    add_message(user_id, "user", user_input, None, user_timestamp)
-
-    user_msg = {
-        "role": "user",
-        "content": user_input,
-        "timestamp": user_timestamp
-    }
-    st.session_state.display_messages.append(user_msg)
-
-    with st.chat_message("user", avatar="chat_logo.png"):
-        st.write(user_input)
-
-    # Check user spending limit
-    usage = get_user_total_usage(user_id)
-    spending_limit = get_spending_limit(user_id)  # dollars per user
-
-    if usage["total_cost"] >= spending_limit:
-        with st.chat_message("assistant", avatar="logo.png"):
-            st.write("You've reached your current message limit! Reach out to Koyote to continue. 🐾")
-        st.stop()
-
-    # Check if summarization needed
-    with st.spinner("Getting to know you better..."):
-        summarized = check_and_summarize(user_id)
-    if summarized:
-        st.toast("✨ Memory updated")
-
-    full_system_prompt = build_full_system_prompt()
-    db_messages = get_messages(user_id, limit=context_depth * 2)
-    api_messages = format_messages_for_api(db_messages)
-
-    with st.chat_message("assistant", avatar="logo.png"):
-        with st.spinner("Koedy is typing..."):
-            response = client.messages.create(
-                model="claude-opus-4-6",
-                max_tokens=16000,
-                thinking={
-                    "type": "enabled",
-                    "budget_tokens": 10000
-                },
-                system=full_system_prompt,
-                messages=api_messages
-            )
-
-        response_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
-
-        thinking_text = ""
-        response_text = ""
-        for block in response.content:
-            if block.type == "thinking":
-                thinking_text = block.thinking
-            elif block.type == "text":
-                response_text = block.text
-
-        # Log token usage
-        usage = response.usage
-        in_tokens = usage.input_tokens
-        out_tokens = usage.output_tokens
-        in_cost = in_tokens * INPUT_COST_PER_TOKEN
-        out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
-        log_token_usage(user_id, "message", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
-
-        clean_response = process_note_tags(response_text)
-
-        add_message(user_id, "assistant", clean_response, thinking_text, response_timestamp)
-
-        assistant_msg = {
-            "role": "assistant",
-            "content": clean_response,
-            "thinking": thinking_text,
-            "timestamp": response_timestamp
-        }
-        st.session_state.display_messages.append(assistant_msg)
-
-        st.write(clean_response)
