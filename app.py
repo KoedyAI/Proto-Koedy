@@ -484,46 +484,57 @@ elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"
     api_messages = format_messages_for_api(db_messages, get_turn_counter(user_id))
 
     with st.chat_message("assistant", avatar="logo.png"):
-        with st.spinner("Koedy is typing..."):
-            response = client.messages.create(
-                model="claude-opus-4-6",
-                max_tokens=16000,
-                thinking={
-                    "type": "enabled",
-                    "budget_tokens": 10000
-                },
-                system=full_system_prompt,
-                messages=api_messages
-            )
+        try:
+            with st.spinner("Koedy is ruminating..."):
+                response = client.messages.create(
+                    model="claude-opus-4-6",
+                    max_tokens=16000,
+                    thinking={
+                        "type": "enabled",
+                        "budget_tokens": 10000
+                    },
+                    system=full_system_prompt,
+                    messages=api_messages
+                )
 
-        response_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
+            response_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
 
-        thinking_text = ""
-        response_text = ""
-        for block in response.content:
-            if block.type == "thinking":
-                thinking_text = block.thinking
-            elif block.type == "text":
-                response_text = block.text
+            thinking_text = ""
+            response_text = ""
+            for block in response.content:
+                if block.type == "thinking":
+                    thinking_text = block.thinking
+                elif block.type == "text":
+                    response_text = block.text
 
-        # Log token usage
-        usage = response.usage
-        in_tokens = usage.input_tokens
-        out_tokens = usage.output_tokens
-        in_cost = in_tokens * INPUT_COST_PER_TOKEN
-        out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
-        log_token_usage(user_id, "message", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
+            # Log token usage
+            usage = response.usage
+            in_tokens = usage.input_tokens
+            out_tokens = usage.output_tokens
+            in_cost = in_tokens * INPUT_COST_PER_TOKEN
+            out_cost = out_tokens * OUTPUT_COST_PER_TOKEN
+            log_token_usage(user_id, "message", in_tokens, out_tokens, in_cost, out_cost, in_cost + out_cost)
 
-        clean_response = process_note_tags(response_text)
+            clean_response = process_note_tags(response_text)
 
-        add_message(user_id, "assistant", clean_response, thinking_text, response_timestamp)
+            add_message(user_id, "assistant", clean_response, thinking_text, response_timestamp)
 
-        assistant_msg = {
-            "role": "assistant",
-            "content": clean_response,
-            "thinking": thinking_text,
-            "timestamp": response_timestamp
-        }
-        st.session_state.display_messages.append(assistant_msg)
+            assistant_msg = {
+                "role": "assistant",
+                "content": clean_response,
+                "thinking": thinking_text,
+                "timestamp": response_timestamp
+            }
+            st.session_state.display_messages.append(assistant_msg)
 
-        st.write(clean_response)
+            st.write(clean_response)
+
+        except Exception:
+            st.warning("Something went wrong — try sending your message again. 🐾")
+            # Remove the user message that didn't get a response
+            if st.session_state.display_messages and st.session_state.display_messages[-1]["role"] == "user":
+                failed_msg = st.session_state.display_messages.pop()
+                # Clean it from DB too
+                recent = get_messages(user_id, limit=1)
+                if recent and recent[0]["role"] == "user":
+                    delete_messages_by_ids([recent[0]["id"]])
