@@ -589,7 +589,7 @@ with st.sidebar:
                         st.session_state.display_messages.pop()
                 decrement_turn_counter(user_id)
             st.rerun()
-            
+
     st.divider()
 
     st.caption("Attach file:")
@@ -629,6 +629,9 @@ with st.sidebar:
                 st.caption(f"📎 {uploaded_file.name} ready")
         else:
             st.caption(f"📎 {uploaded_file.name} sent ✓")
+        st.caption("Koedy can only see files while attached", help="Remove file(s) when you're done — adds cost each turn attached")
+    else:
+        st.caption("Koedy can only see files while attached")
 
     st.divider()
 
