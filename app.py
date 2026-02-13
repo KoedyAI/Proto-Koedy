@@ -3,6 +3,9 @@ from datetime import datetime, timedelta, timezone
 PT = timezone(timedelta(hours=-8))
 from anthropic import Anthropic
 import json
+import re
+import requests
+from bs4 import BeautifulSoup
 from database import (
     add_message,
     get_messages,
@@ -418,6 +421,31 @@ def process_note_tags(response_text: str) -> str:
 
     return response_text
 
+def extract_urls(text):
+    return re.findall(r'https?://[^\s<>"{}|\\^`\[\]]+', text)
+
+def fetch_page_text(url, char_limit=5000):
+    try:
+        resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for tag in soup(["script", "style", "nav", "footer", "header"]):
+            tag.decompose()
+        return soup.get_text(separator="\n", strip=True)[:char_limit]
+    except Exception:
+        return None
+
+def enrich_message_with_urls(text):
+    urls = extract_urls(text)
+    if not urls:
+        return text
+    enriched = text
+    for url in urls[:3]:
+        page_text = fetch_page_text(url)
+        if page_text:
+            enriched += f"\n\n[Content from {url}]:\n{page_text}"
+    return enriched
+
 def call_koedy(user_id, context_depth, is_resend=False):
     """Make API call and handle response. Extracted so resend can reuse it."""
     # Check spending limit
@@ -437,6 +465,10 @@ def call_koedy(user_id, context_depth, is_resend=False):
     full_system_prompt = build_full_system_prompt()
     db_messages = get_messages(user_id, limit=context_depth * 2)
     api_messages = format_messages_for_api(db_messages, get_turn_counter(user_id))
+    
+    # Enrich last message with any URL content
+    if api_messages and api_messages[-1]["role"] == "user":
+        api_messages[-1]["content"] = enrich_message_with_urls(api_messages[-1]["content"])
 
     with st.chat_message("assistant", avatar="logo.png"):
         try:
@@ -537,6 +569,20 @@ with st.sidebar:
                 decrement_turn_counter(user_id)
             st.rerun()
 
+    st.divider()
+
+    st.caption("Search history:")
+    search_query = st.text_input("Search", label_visibility="collapsed", placeholder="Search past conversations...")
+    if search_query:
+        results = search_extended_history(user_id, search_query)
+        if results:
+            for r in results:
+                role = "You" if r["role"] == "user" else "Koedy"
+                preview = r["content"][:200].replace("\n", " ")
+                st.markdown(f"**{role}:** {preview}...")
+        else:
+            st.caption("Nothing found — try different terms 🐾")
+            
     st.divider()
 
     st.header("Export")

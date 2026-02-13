@@ -2,3 +2,5 @@ streamlit
 anthropic
 python-dotenv
 supabase
+requests
+beautifulsoup4
