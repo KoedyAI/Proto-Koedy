@@ -24,6 +24,7 @@ from database import (
     clear_note,
     export_all_data,
     increment_turn_counter,
+    decrement_turn_counter,
     get_turn_counter,
     log_token_usage,
     get_user_total_usage,
@@ -497,6 +498,7 @@ with st.sidebar:
 
     st.divider()
 
+    st.caption("Last message:")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("↻ Resend", use_container_width=True):
@@ -515,6 +517,7 @@ with st.sidebar:
                 for _ in range(min(2, len(st.session_state.display_messages))):
                     if st.session_state.display_messages:
                         st.session_state.display_messages.pop()
+                decrement_turn_counter(user_id)
             st.rerun()
 
     st.divider()

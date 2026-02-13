@@ -290,3 +290,17 @@ def set_spending_limit(user_id: str, limit: float):
             "key": f"spending_limit_{user_id}",
             "value": str(limit)
         }).execute()
+
+def decrement_turn_counter(user_id):
+    result = supabase.table("koedy_turn_counters") \
+        .select("turn_count") \
+        .eq("user_id", user_id) \
+        .execute()
+    if result.data and result.data[0]["turn_count"] > 0:
+        new_count = result.data[0]["turn_count"] - 1
+        supabase.table("koedy_turn_counters") \
+            .update({"turn_count": new_count}) \
+            .eq("user_id", user_id) \
+            .execute()
+        return new_count
+    return 0
