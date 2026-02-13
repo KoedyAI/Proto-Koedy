@@ -498,7 +498,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.caption("Last message:")
+    st.header("Last message:")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("↻ Resend", use_container_width=True):
