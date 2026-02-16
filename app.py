@@ -41,25 +41,17 @@ st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
 def set_background(image_file, opacity=0.15):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
+    overlay = 1 - opacity  # higher overlay = more faded image
     st.markdown(f"""
     <style>
     .stApp {{
-        position: relative;
-    }}
-    .stApp::before {{
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url("data:image/png;base64,{data}");
-        background-size: contain;
-        background-position: center top;
-        background-repeat: no-repeat;
-        opacity: {opacity};
-        z-index: 0;
-        pointer-events: none;
+        background-image: 
+            linear-gradient(rgba(10, 15, 25, {overlay}), rgba(10, 15, 25, {overlay})),
+            url("data:image/png;base64,{data}");
+        background-size: cover, contain;
+        background-position: center, center top;
+        background-attachment: fixed, fixed;
+        background-repeat: no-repeat, no-repeat;
     }}
     /* User bubbles */
     [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {{
