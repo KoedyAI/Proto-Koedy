@@ -38,7 +38,7 @@ from database import (
 import base64
 st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
 
-def set_background(image_file, opacity=0.05):
+def set_background(image_file, opacity=0.01):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
