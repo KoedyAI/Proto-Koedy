@@ -38,7 +38,7 @@ from database import (
 import base64
 st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
 
-def set_background(image_file, opacity=0.50):
+def set_background(image_file, opacity=0.420):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     overlay = 1 - opacity  # higher overlay = more faded image
