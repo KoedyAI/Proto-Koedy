@@ -53,7 +53,7 @@ def set_background(image_file, opacity=0.01):
     }}
     /* User bubbles */
     [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {{
-        background-color: rgba(8, 145, 178, 0.12);
+        background-color: rgba(8, 145, 178, 0.90);
         border-left: 3px solid #0891B2;
         border-radius: 8px;
         padding: 8px 12px;
