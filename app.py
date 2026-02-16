@@ -38,22 +38,32 @@ from database import (
 import base64
 st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
 
-def set_background(image_file, opacity=0.01):
+def set_background(image_file, opacity=0.15):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     st.markdown(f"""
     <style>
-    /* Background image */
     .stApp {{
+        position: relative;
+    }}
+    .stApp::before {{
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         background-image: url("data:image/png;base64,{data}");
         background-size: contain;
         background-position: center top;
-        background-attachment: fixed;
         background-repeat: no-repeat;
+        opacity: {opacity};
+        z-index: 0;
+        pointer-events: none;
     }}
     /* User bubbles */
     [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {{
-        background-color: rgba(8, 145, 178, 0.90);
+        background-color: rgba(8, 145, 178, 0.12);
         border-left: 3px solid #0891B2;
         border-radius: 8px;
         padding: 8px 12px;
