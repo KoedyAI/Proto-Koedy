@@ -370,7 +370,7 @@ def check_and_summarize(user_id: str):
                 "role": "system",
                 "content": f"[SUMMARY of turns {turn_start}-{turn_end}]\n{summary_text}",
                 "thinking": None,
-                "timestamp": datetime.now(PT).strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": datetime.now(PT).strftime("%A %Y-%m-%d %H:%M:%S")
             }
             archive_messages(user_id, oldest_messages + [summary_entry], summary_id)
 
@@ -685,7 +685,7 @@ if st.session_state.get("user_id") == "Anthropic" and len(user_messages) >= 10:
     st.chat_input("I bet you wanted to send an 11th 😏", disabled=True)
 elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"):
     turn_number = increment_turn_counter(user_id)
-    user_timestamp = datetime.now(PT).strftime("%H:%M:%S %Y-%m-%d")
+    user_timestamp = datetime.now(PT).strftime("%A %H:%M:%S %Y-%m-%d")
     turn_display.write(f"Turn: {turn_number}")
 
     add_message(user_id, "user", user_input, None, user_timestamp)
