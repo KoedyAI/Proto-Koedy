@@ -38,7 +38,7 @@ from database import (
 import base64
 st.set_page_config(page_icon="logo.png", page_title="Koedy", layout="wide")
 
-def set_background(image_file, opacity=0.80):
+def set_background(image_file, opacity=0.70):
     with open(image_file, "rb") as f:
         data = base64.b64encode(f.read()).decode()
     overlay = 1 - opacity  # higher overlay = more faded image
@@ -55,7 +55,7 @@ def set_background(image_file, opacity=0.80):
     }}
     /* User bubbles */
     [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {{
-        background-color: rgba(8, 145, 178, 0.36);
+        background-color: rgba(8, 145, 178, 0.24);
         border-left: 3px solid #0891B2;
         border-radius: 8px;
         padding: 8px 12px;
