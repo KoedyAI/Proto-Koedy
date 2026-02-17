@@ -217,22 +217,15 @@ def build_full_system_prompt():
 You have access to three note types you can update by including these tags in your response.
 You have full permission to use these at your discretion. YOU decide when to add/edit.
 
- - Scratchpad for temporary context, casual
-thoughts, current focus. (300 word limit)
- - Medium-term tracking: projects, topic
-threads, things to watch for. Include status and search tags for future
-retrieval. (750 word limit)
- - Formation milestones, significant
-moments, important events. Will NOT be deleted. Before creating a new entry,
-check whether the information belongs in an existing entry — consolidate
-rather than duplicate. Each entry should cover a distinct milestone. Maximize
-information per token. (limit to 50-125 words per entry; no max word limit)
+[ACTIVE NOTE: your content here] - Scratchpad (not a status dashboard) for temporary context, casual thoughts, current focus. (300 word limit)
+[ONGOING NOTE: your content here] - Medium-term tracking: projects, topic threads, things to watch for. Include status and search tags for future retrieval. (750 word limit)
+[PERMANENT NOTE: your content here] - Will NOT be deleted - maximize information per token here especially. Use (sparingly) for Formation milestones, significant moments, important events. Will NOT be deleted. Before creating a new entry, check whether the information belongs in an existing entry — consolidate rather than duplicate. Each entry should cover a distinct milestone. Maximize information per token. (limit to 50-125 words per entry; no max word limit)
 
 These persist across conversations. Update when context shifts or something
 important happens.
 
- - Search extended history. Results appear in next context.
-Pairs with notes — note what to SEARCH for when topics recur.
+You also have permission find information as you see fit from past conversations/messages that are no longer in context by using the SEARCH function: 
+[SEARCH: your query] - This enables you to search extended history. Results appear in your next context. Pairs well with notes — note what to SEARCH for when topics recur.
 """
 
     return base_prompt
