@@ -326,7 +326,7 @@ def compress_summary_to_ah(summary: dict) -> str:
 Preserve only: calibration data (who the user is, how they communicate, what matters to them), significant relationship developments, ongoing thread updates, emotional patterns observed.
 Distill to essential facts. No markdown. One dense paragraph.
 Do not overlap with previous AH entries provided below.
-Target 60 words; Hard limit 85."""
+Target 60 words; Hard limit 80."""
 
     # Fetch previous AH entries for overlap prevention
     prev_ah = get_recent_ah(limit=4)
