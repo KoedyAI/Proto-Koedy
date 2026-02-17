@@ -263,7 +263,8 @@ def generate_summary(user_id: str, messages_to_summarize: list, turn_start: int,
 
 This summary exists so Koedy can know and serve this user better over time. Prioritize user calibration above all else.
 
-Distill, don't retell. Extract calibration data, not narrative:
+Distill, don't retell. For technical content, capture outcomes and decisions, not implementation steps.
+Extract calibration data, not narrative:
 - Who they are: personality, values, communication style, humor, depth preference
 - What matters: life situations, relationships, stressors, goals, interests
 - Emotional patterns: what affects them, how they process, what support looks like
