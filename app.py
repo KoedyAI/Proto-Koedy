@@ -22,6 +22,7 @@ from database import (
     get_oldest_non_archived_summary,
     mark_summary_archived,
     get_ancient_history,
+    get_recent_ah,
     add_ancient_history_entry,
     search_extended_history,
     get_all_notes,
@@ -55,7 +56,7 @@ def set_background(image_file, opacity=0.420):
     }}
     /* User bubbles */
     [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) {{
-        background-color: rgba(8, 145, 178, 0.2);
+        background-color: rgba(8, 145, 178, 0.16);
         border-left: 3px solid #0891B2;
         border-radius: 8px;
         padding: 8px 12px;
@@ -213,11 +214,25 @@ def build_full_system_prompt():
     base_prompt += """
 
 === NOTE SYSTEM ===
-You have access to three note types you can update by including these tags in your response. You have full permission to use and utilize these at your discretion on when to update as you see fit to ensure ideal collaboration between yourself and the user; YOU get to decide when to add/edit these.
-[ACTIVE NOTE: your content here] - Use freely/whimsically as a scratchpad, not as a rigid tracker, for temporary context (up to a week or so; no rigid timeframe constraint), casual thoughts, current focus, etc. (500 word limit)
-[ONGOING NOTE: your content here] - For medium-term (50+ Turns) context (tracking projects or other topic threads), things to watch for or "keep in mind" - include current status and tags to search for in the future when deeper context is needed (1000 word limit)  
-[PERMANENT NOTE: your content here] - Will NOT be deleted - maximize information per token here especially - use (sparingly) for relationship milestones, significant moments, achievements, important events, etc - (2000 word limit)
-These notes persist across conversations and remain in future context (but are hidden from the user), allowing you to track threads over time, including mapping your own uncertainty or confidence. Update them when user provides new or corrective information that you want to remember for future context or when context shifts or something important happens.
+You have access to three note types you can update by including these tags in your response.
+You have full permission to use these at your discretion. YOU decide when to add/edit.
+
+ - Scratchpad for temporary context, casual
+thoughts, current focus. (300 word limit)
+ - Medium-term tracking: projects, topic
+threads, things to watch for. Include status and search tags for future
+retrieval. (750 word limit)
+ - Formation milestones, significant
+moments, important events. Will NOT be deleted. Before creating a new entry,
+check whether the information belongs in an existing entry — consolidate
+rather than duplicate. Each entry should cover a distinct milestone. Maximize
+information per token. (limit to 50-125 words per entry; no max word limit)
+
+These persist across conversations. Update when context shifts or something
+important happens.
+
+ - Search extended history. Results appear in next context.
+Pairs with notes — note what to SEARCH for when topics recur.
 """
 
     return base_prompt
@@ -244,23 +259,20 @@ def generate_summary(user_id: str, messages_to_summarize: list, turn_start: int,
     """Generate a summary of messages using a hidden API call."""
     base_prompt = load_system_prompt()
 
-    summary_prompt = f"""Summarize this conversation segment (Turns {turn_start}-{turn_end}). Begin your summary with the turn range.
+    summary_prompt = f"""Summarize this conversation segment (Turns {turn_start}-{turn_end}). Begin with the turn range and context tags [personal, technical, creative, emotional, casual, etc.].
 
-Prioritize user calibration above all else. This summary exists so Koedy can know and serve this user better over time.
+This summary exists so Koedy can know and serve this user better over time. Prioritize user calibration above all else.
 
-Extract and preserve:
-- Who the user is: personality traits, values, communication style, humor, depth preference
-- What matters to them: ongoing life situations, relationships, stressors, goals, interests
-- Emotional patterns: what affects them, how they process, what support looks like for them
-- Interaction dynamics: what works well, what falls flat, how they respond to different approaches
-- Ongoing threads: unresolved topics, commitments made, things to follow up on
+Distill, don't retell. Extract calibration data, not narrative:
+- Who they are: personality, values, communication style, humor, depth preference
+- What matters: life situations, relationships, stressors, goals, interests
+- Emotional patterns: what affects them, how they process, what support looks like
+- Interaction dynamics: what works, what falls flat, approach preferences
+- Ongoing threads: unresolved topics, commitments, follow-ups
 
-Guidelines:
-- Weight relational and emotional context over technical minutiae; who the user IS matters more than what they asked about
-- Do not significantly overlap with previous summaries; reference ongoing threads but add new context rather than restating
-- Include context tags: simple labels [creative, technical, personal, emotional, etc.]
-- Maximize information per token; no markdown (this summary is for your own context, not the user)
-- Do not exceed 250 words unless critical calibration information would be lost"""
+Do not overlap with previous summaries — add new calibration context only.
+Weight who the user IS over what they asked about. No markdown.
+Target 125 words. Hard limit 175."""
 
     # Fetch previous summaries for context threading
     prev_summaries = get_recent_summaries(user_id, limit=2)
@@ -281,7 +293,7 @@ Guidelines:
     content += "\n\n" + summary_prompt
 
     response = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-sonnet-4-5",
         max_tokens=5000,
         system=base_prompt,
         thinking={
@@ -306,29 +318,36 @@ Guidelines:
             return block.text
     return ""
 
-def compress_summary_to_ah(user_id: str, summary: dict) -> str:
-    """Compress a summary into ancient history bullet points."""
-    base_prompt = load_system_prompt()
+def compress_summary_to_ah(summary: dict) -> str:
+    """Compress a summary into ancient history."""
+ 
+    compression_prompt = """Compress the following conversation summary into an ancient history entry for long-term user context.
 
-    compression_prompt = """Compress the following conversation summary into 1-4 concise bullet points for long-term ancient history storage. Use fewer when the conversation segment is straightforward; use more only when significant calibration details would be lost.
+Preserve only: calibration data (who the user is, how they communicate, what matters to them), significant relationship developments, ongoing thread updates, emotional patterns observed.
+Distill to essential facts. No markdown. One dense paragraph.
+Do not overlap with previous AH entries provided below.
+Target 60 words; Hard limit 85."""
 
-Preserve only what matters for ongoing calibration with this user:
-- Key discoveries about who they are
-- Significant emotional moments or relationship developments
-- Decisions or commitments that affect future conversations
-- Context that would be lost without preservation
+    # Fetch previous AH entries for overlap prevention
+    prev_ah = get_recent_ah(limit=4)
 
-Be extremely concise. Maximize information per token. No markdown. Each bullet should be one substantive line starting with a dash."""
+    content = ""
+    if prev_ah:
+        content += "Previous AH entries (do not overlap with these):\n\n"
+        for entry in prev_ah:
+            content += f"{entry['turn_range']}: {entry['content']}\n\n"
+        content += "---\n\n"
 
-    content = f"Summary of Turns {summary['turn_start']}-{summary['turn_end']}:\n{summary['summary_text']}\n\n{compression_prompt}"
+    content += f"Summary to compress (Turns {summary['turn_start']}-{summary['turn_end']}):\n{summary['summary_text']}\n\n"
+    content += compression_prompt
 
     response = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=2000,
+        model="claude-sonnet-4-5",
+        max_tokens=5000,
         system=base_prompt,
         thinking={
             "type": "enabled",
-            "budget_tokens": 2000
+            "budget_tokens": 3000
         },
         messages=[{
             "role": "user",

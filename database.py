@@ -116,6 +116,16 @@ def mark_summary_archived(summary_id: int):
 def get_ancient_history(user_id: str) -> List[Dict[str, Any]]:
     result = db().table("koedy_ancient_history").select("*").eq("user_id", user_id).order("id").execute()
     return result.data if result.data else []
+    
+def get_recent_ah(limit: int = 4) -> List[Dict[str, Any]]:
+    """Get the most recent ancient history entries for overlap prevention."""
+    result = db().table("ancient_history").select("*").order("id", desc=True).limit(limit).execute()
+
+    if not result.data:
+        return []
+
+    # Reverse to chronological order
+    return list(reversed(result.data))
 
 def add_ancient_history_entry(user_id: str, turn_range: str, content: str):
     db().table("koedy_ancient_history").insert({
