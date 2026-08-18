@@ -510,7 +510,7 @@ def call_koedy(user_id, context_depth, is_resend=False):
         try:
             with st.spinner("Koedy is ruminating..."):
                 response = client.messages.create(
-                    model="claude-opus-4-6",
+                    model="claude-sonnet-4-6",
                     max_tokens=16000,
                     thinking={"type": "enabled", "budget_tokens": 10000},
                     system=full_system_prompt,
