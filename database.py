@@ -119,7 +119,7 @@ def get_ancient_history(user_id: str) -> List[Dict[str, Any]]:
     
 def get_recent_ah(limit: int = 4) -> List[Dict[str, Any]]:
     """Get the most recent ancient history entries for overlap prevention."""
-    result = db().table("ancient_history").select("*").order("id", desc=True).limit(limit).execute()
+    result = db().table("koedy_ancient_history").select("*").eq("user_id", user_id).order("id", desc=True).limit(limit).execute()
 
     if not result.data:
         return []
@@ -270,15 +270,22 @@ def get_user_total_usage(user_id: str) -> Dict[str, Any]:
 
 # === Export Functions ===
 
+def get_extended_history(user_id: str) -> List[Dict[str, Any]]:
+    """Get all extended history entries for backup/export."""
+    result = db().table("koedy_extended_history").select("*").eq("user_id", user_id).order("id", desc=False).execute()
+    return result.data if result.data else []
+
 def export_all_data(user_id: str) -> Dict[str, Any]:
     messages = get_messages(user_id)
     sum_result = db().table("koedy_summaries").select("*").eq("user_id", user_id).order("id", desc=False).execute()
     summaries = sum_result.data if sum_result.data else []
     ancient = get_ancient_history(user_id)
+    extended = get_extended_history(user_id)
     return {
         "messages": messages,
         "summaries": summaries,
         "ancient_history": ancient,
+        "extended_history": extended,
         "notes": get_all_notes(user_id),
         "turn_counter": get_turn_counter(user_id),
         "exported_at": datetime.now().isoformat()

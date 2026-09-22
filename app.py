@@ -223,10 +223,10 @@ You have full permission to use these at your discretion. YOU decide when to add
 
 These persist across conversations. Update when context shifts or something
 important happens.
-
-You also have permission find information as you see fit from past conversations/messages that are no longer in context by using the SEARCH function: 
-[SEARCH: your query] - This enables you to search extended history. Results appear in your next context. Pairs well with notes — note what to SEARCH for when topics recur.
 """
+#You also have permission find information as you see fit from past conversations/messages that are no longer in context by using the SEARCH function: 
+#[SEARCH: your query] - This enables you to search extended history. Results appear in your next context. Pairs well with notes — note what to SEARCH for when topics recur.
+#"""
 
     return base_prompt
 
@@ -244,8 +244,14 @@ def format_messages_for_api(messages: list, current_turn: int) -> list:
             formatted.append({"role": "user", "content": prefix + msg["content"]})
             turn += 1
         else:
-            prefix = f"[{ts}] " if ts else ""
-            formatted.append({"role": "assistant", "content": prefix + msg["content"]})
+            prefix = f"[{}] " if ts else ""
+            if msg.get("thinking"):
+                content = f"{msg['thinking']}\n===END THINKING===\n\n{msg['content']}\n\n"
+            else:
+                content = prefix + msg["content"]
+            formatted.append({"role": "assistant", "content": content})
+
+
     return formatted
 
 def generate_summary(user_id: str, messages_to_summarize: list, turn_start: int, turn_end: int) -> str:
@@ -312,7 +318,7 @@ Target 125 words. Hard limit 175."""
             return block.text
     return ""
 
-def compress_summary_to_ah(summary: dict) -> str:
+def compress_summary_to_ah(user_id: str, summary: dict) -> str:
     """Compress a summary into ancient history."""
  
     compression_prompt = """Compress the following conversation summary into an ancient history entry for long-term user context.
@@ -323,7 +329,7 @@ Do not overlap with previous AH entries provided below.
 Target 60 words; Hard limit 80."""
 
     # Fetch previous AH entries for overlap prevention
-    prev_ah = get_recent_ah(limit=4)
+    prev_ah = get_recent_ah(user_id, limit=4)
 
     content = ""
     if prev_ah:
@@ -336,9 +342,8 @@ Target 60 words; Hard limit 80."""
     content += compression_prompt
 
     response = client.messages.create(
-        model="claude-sonnet-4-5",
+        model="claude-sonnet-4-6",
         max_tokens=5000,
-        system=base_prompt,
         thinking={
             "type": "enabled",
             "budget_tokens": 3000
@@ -480,7 +485,7 @@ def call_koedy(user_id, context_depth, is_resend=False):
         st.toast("✨ Memory updated")
 
     full_system_prompt = build_full_system_prompt()
-    db_messages = get_messages(user_id, limit=context_depth * 2)
+    db_messages = get_messages(user_id, limit=context_depth * 2 + 1)
     api_messages = format_messages_for_api(db_messages, get_turn_counter(user_id))
     
     # Enrich last message with any URL content
