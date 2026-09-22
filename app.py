@@ -511,6 +511,10 @@ def call_koedy(user_id, context_depth, is_resend=False):
         st.session_state.last_sent_file = attachment["file_key"]
         st.session_state.pop("pending_attachment", None)
     
+    # ### DEBUG CHECK ###
+    with st.expander("DEBUG: exactly what was sent"):
+        st.json(api_messages)
+
     with st.chat_message("assistant", avatar="logo.png"):
         try:
             with st.spinner("Koedy is ruminating..."):
