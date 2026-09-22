@@ -510,10 +510,6 @@ def call_koedy(user_id, context_depth, is_resend=False):
 
         st.session_state.last_sent_file = attachment["file_key"]
         st.session_state.pop("pending_attachment", None)
-    
-    # ### DEBUG CHECK ###
-    with st.expander("DEBUG: exactly what was sent"):
-        st.json(api_messages)
 
     with st.chat_message("assistant", avatar="logo.png"):
         try:
@@ -561,6 +557,10 @@ def call_koedy(user_id, context_depth, is_resend=False):
                 recent = get_messages(user_id, limit=1)
                 if recent and recent[0]["role"] == "user":
                     delete_messages_by_ids([recent[0]["id"]])
+
+    # ### DEBUG CHECK ###
+    with st.expander("DEBUG: exactly what was sent"):
+        st.json(api_messages)
 
 # === STREAMLIT UI ===
 
