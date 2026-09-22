@@ -244,7 +244,7 @@ def format_messages_for_api(messages: list, current_turn: int) -> list:
             formatted.append({"role": "user", "content": prefix + msg["content"]})
             turn += 1
         else:
-            prefix = f"[{}] " if ts else ""
+            prefix = f"[] " if ts else ""
             if msg.get("thinking"):
                 content = f"{msg['thinking']}\n===END THINKING===\n\n{msg['content']}\n\n"
             else:
