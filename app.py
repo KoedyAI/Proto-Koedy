@@ -720,7 +720,4 @@ elif user_input := st.chat_input("Hey there! Name's Koedy. What's on your mind?"
         st.write(user_input)
         st.markdown(f'<p style="text-align: right; font-size: 0.75em; color: #385480;">{user_timestamp}</p>', unsafe_allow_html=True)
 
-    with st.expander("DEBUG: exactly what was sent"):
-        st.json(api_messages)
-    
     call_koedy(user_id, context_depth)
